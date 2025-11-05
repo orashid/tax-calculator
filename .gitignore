@@ -17,6 +17,7 @@ ENV/
 # Node
 node_modules/
 npm-debug.log*
+coverage/
 
 # IDEs
 .vscode/

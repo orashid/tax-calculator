@@ -144,3 +144,8 @@ class TaxCalculator {
 
 // Create global instance
 const taxCalculator = new TaxCalculator();
+
+// Export for testing (Node.js environment)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { TaxCalculator };
+}

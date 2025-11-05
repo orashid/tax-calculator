@@ -1,0 +1,32 @@
+{
+  "name": "tax-calculator",
+  "version": "1.0.0",
+  "description": "Income tax calculator for 2024 federal and state taxes",
+  "main": "index.html",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": ["tax", "calculator", "income-tax"],
+  "author": "Obaidur Rashid",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "collectCoverageFrom": [
+      "js/calculator.js"
+    ],
+    "coverageThreshold": {
+      "js/calculator.js": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
+  }
+}
