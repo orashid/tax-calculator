@@ -1,0 +1,2 @@
+- Please add the requirements laid out here to the .MD file
+- please update the .md file such that next year you have al the context needed update new bracket amounts
