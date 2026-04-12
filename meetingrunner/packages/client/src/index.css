@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Scrollbar styling for board columns */
+.board-columns::-webkit-scrollbar {
+  height: 8px;
+}
+.board-columns::-webkit-scrollbar-track {
+  @apply bg-gray-200 rounded;
+}
+.board-columns::-webkit-scrollbar-thumb {
+  @apply bg-gray-400 rounded;
+}
+
+/* Card list scrollbar */
+.card-list::-webkit-scrollbar {
+  width: 6px;
+}
+.card-list::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+.card-list::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded;
+}
+
+/* TipTap editor styles */
+.ProseMirror {
+  @apply outline-none min-h-[100px] p-2;
+}
+.ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-gray-400 pointer-events-none;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+}

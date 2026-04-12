@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  displayName  String   @map("display_name") @db.VarChar(100)
+  role         String   @default("member") @db.VarChar(20)
+  avatarUrl    String?  @map("avatar_url")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  createdBoards  Board[]        @relation("BoardCreator")
+  boardMembers   BoardMember[]
+  createdCards   Card[]         @relation("CardCreator")
+  cardAssignees  CardAssignee[]
+  comments       Comment[]
+  attachments    Attachment[]
+  notifications  Notification[]
+  refreshTokens  RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz()
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Board {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String   @db.VarChar(200)
+  description String?
+  createdBy   String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  creator User @relation("BoardCreator", fields: [createdBy], references: [id])
+  lists   List[]
+  members BoardMember[]
+
+  @@map("boards")
+}
+
+model BoardMember {
+  boardId String @map("board_id") @db.Uuid
+  userId  String @map("user_id") @db.Uuid
+
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([boardId, userId])
+  @@map("board_members")
+}
+
+model List {
+  id        String   @id @default(uuid()) @db.Uuid
+  boardId   String   @map("board_id") @db.Uuid
+  title     String   @db.VarChar(200)
+  position  Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  board Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards Card[]
+
+  @@index([boardId, position])
+  @@map("lists")
+}
+
+model Card {
+  id          String   @id @default(uuid()) @db.Uuid
+  listId      String   @map("list_id") @db.Uuid
+  title       String   @db.VarChar(500)
+  description Json?
+  position    Int
+  dueDate     DateTime? @map("due_date") @db.Timestamptz()
+  createdBy   String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  list        List           @relation(fields: [listId], references: [id], onDelete: Cascade)
+  creator     User           @relation("CardCreator", fields: [createdBy], references: [id])
+  assignees   CardAssignee[]
+  comments    Comment[]
+  attachments Attachment[]
+  notifications Notification[]
+
+  @@index([listId, position])
+  @@index([dueDate])
+  @@map("cards")
+}
+
+model CardAssignee {
+  cardId String @map("card_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([cardId, userId])
+  @@map("card_assignees")
+}
+
+model Comment {
+  id        String   @id @default(uuid()) @db.Uuid
+  cardId    String   @map("card_id") @db.Uuid
+  parentId  String?  @map("parent_id") @db.Uuid
+  authorId  String   @map("author_id") @db.Uuid
+  body      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  card    Card      @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+  author  User      @relation(fields: [authorId], references: [id])
+
+  @@index([cardId, createdAt])
+  @@map("comments")
+}
+
+model Attachment {
+  id         String   @id @default(uuid()) @db.Uuid
+  cardId     String   @map("card_id") @db.Uuid
+  uploadedBy String   @map("uploaded_by") @db.Uuid
+  filename   String   @db.VarChar(500)
+  fileKey    String   @map("file_key") @db.VarChar(1000)
+  fileSize   Int      @map("file_size")
+  mimeType   String?  @map("mime_type") @db.VarChar(200)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  card     Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  uploader User @relation(fields: [uploadedBy], references: [id])
+
+  @@map("attachments")
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  type      String   @db.VarChar(50)
+  cardId    String?  @map("card_id") @db.Uuid
+  message   String
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card Card? @relation(fields: [cardId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isRead, createdAt(sort: Desc)])
+  @@map("notifications")
+}

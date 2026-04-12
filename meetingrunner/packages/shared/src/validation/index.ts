@@ -1,0 +1,104 @@
+import { z } from 'zod';
+
+// Auth
+export const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1),
+});
+
+// Users
+export const inviteUserSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  displayName: z.string().min(1, 'Display name is required').max(100),
+  role: z.enum(['admin', 'member']).optional().default('member'),
+});
+
+export const updateUserSchema = z.object({
+  displayName: z.string().min(1).max(100).optional(),
+  avatarUrl: z.string().url().nullable().optional(),
+  password: z.string().min(8).optional(),
+});
+
+// Boards
+export const createBoardSchema = z.object({
+  title: z.string().min(1, 'Board title is required').max(200),
+  description: z.string().max(2000).optional(),
+});
+
+export const updateBoardSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(2000).nullable().optional(),
+});
+
+// Lists
+export const createListSchema = z.object({
+  title: z.string().min(1, 'List title is required').max(200),
+});
+
+export const updateListSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+});
+
+export const reorderSchema = z.object({
+  orderedIds: z.array(z.string().uuid()).min(1),
+});
+
+// Cards
+export const createCardSchema = z.object({
+  title: z.string().min(1, 'Card title is required').max(500),
+  description: z.unknown().optional(),
+  dueDate: z.string().datetime().optional(),
+});
+
+export const updateCardSchema = z.object({
+  title: z.string().min(1).max(500).optional(),
+  description: z.unknown().nullable().optional(),
+  dueDate: z.string().datetime().nullable().optional(),
+});
+
+export const moveCardSchema = z.object({
+  targetListId: z.string().uuid(),
+  position: z.number().int().min(0),
+});
+
+// Card Assignees
+export const addAssigneeSchema = z.object({
+  userId: z.string().uuid(),
+});
+
+// Comments
+export const createCommentSchema = z.object({
+  body: z.string().min(1, 'Comment body is required').max(10000),
+  parentId: z.string().uuid().optional(),
+});
+
+export const updateCommentSchema = z.object({
+  body: z.string().min(1).max(10000),
+});
+
+// Attachments
+export const presignSchema = z.object({
+  filename: z.string().min(1).max(500),
+  mimeType: z.string().min(1).max(200),
+});
+
+export const confirmAttachmentSchema = z.object({
+  fileKey: z.string().min(1).max(1000),
+  filename: z.string().min(1).max(500),
+  fileSize: z.number().int().positive().max(25 * 1024 * 1024), // 25MB max
+  mimeType: z.string().min(1).max(200),
+});
+
+// Board Members
+export const addMemberSchema = z.object({
+  userId: z.string().uuid(),
+});
+
+// UUID param validation
+export const uuidParamSchema = z.object({
+  id: z.string().uuid(),
+});

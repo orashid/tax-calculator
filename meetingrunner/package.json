@@ -1,0 +1,31 @@
+{
+  "name": "meetingrunner",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/shared",
+    "packages/server",
+    "packages/client"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w packages/server\" \"npm run dev -w packages/client\"",
+    "build": "npm run build -w packages/shared && npm run build -w packages/client && npm run build -w packages/server",
+    "test": "npm run test:unit && npm run test:integration && npm run test:security",
+    "test:unit": "npm run test -w packages/shared && npm run test -w packages/client",
+    "test:integration": "npm run test -w packages/server -- src/__tests__/integration/",
+    "test:security": "npm run test -w packages/server -- src/__tests__/security/",
+    "test:e2e": "npx playwright test",
+    "lint": "eslint packages/*/src --ext .ts,.tsx",
+    "db:migrate": "npm run db:migrate -w packages/server",
+    "db:seed": "npm run db:seed -w packages/server",
+    "start": "npm run start -w packages/server"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "concurrently": "^8.2.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.0"
+  }
+}
