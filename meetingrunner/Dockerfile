@@ -13,7 +13,7 @@ COPY packages/client/package.json ./packages/client/
 # Install dependencies
 RUN npm install
 
-# Copy source code
+# Copy source code (bust cache: v3)
 COPY . .
 
 # Build shared types
