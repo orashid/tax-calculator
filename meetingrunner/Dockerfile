@@ -22,6 +22,9 @@ RUN rm -f packages/shared/tsconfig.tsbuildinfo && npm run build -w packages/shar
 # Generate Prisma client
 RUN npx prisma generate --schema=packages/server/prisma/schema.prisma
 
+# Verify new files exist
+RUN ls -la packages/client/src/pages/AdminPage.tsx packages/client/src/components/TrelloImportPanel.tsx && grep -c "AdminPage" packages/client/src/App.tsx
+
 # Build client (skip tsc -b, Vite handles TS natively)
 RUN cd packages/client && npx vite build
 
