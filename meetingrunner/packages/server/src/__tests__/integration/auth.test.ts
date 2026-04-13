@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createTestApp } from '../app.js';
-import { testPrisma, createTestUser, cleanupTestData } from '../helpers.js';
+import { testPrisma, createTestUser, generateTestToken, cleanupTestData } from '../helpers.js';
 
 const app = createTestApp();
 
@@ -101,6 +101,99 @@ describe('Auth Routes', () => {
         .send({ refreshToken: 'invalid-token' });
 
       expect(res.status).toBe(401);
+    });
+  });
+
+  describe('POST /api/v1/users/:id/reset-password (admin)', () => {
+    it('resets password and flags mustChangePassword', async () => {
+      const admin = await createTestUser({ email: 'pw-admin@test.com', role: 'admin', password: 'adminpass123' });
+      const target = await createTestUser({ email: 'pw-target@test.com', password: 'oldpass123' });
+      const adminToken = generateTestToken({ userId: admin.id, email: admin.email, role: 'admin' });
+
+      const res = await request(app)
+        .post(`/api/v1/users/${target.id}/reset-password`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ newPassword: 'newpass456' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toContain('Password reset');
+
+      // Target can now log in with the new password
+      const loginRes = await request(app)
+        .post('/api/v1/auth/login')
+        .send({ email: 'pw-target@test.com', password: 'newpass456' });
+
+      expect(loginRes.status).toBe(200);
+      expect(loginRes.body.user.mustChangePassword).toBe(true);
+
+      // Old password no longer works
+      const oldLoginRes = await request(app)
+        .post('/api/v1/auth/login')
+        .send({ email: 'pw-target@test.com', password: 'oldpass123' });
+
+      expect(oldLoginRes.status).toBe(401);
+    });
+
+    it('rejects reset with short password', async () => {
+      const admin = await createTestUser({ email: 'pw-admin2@test.com', role: 'admin' });
+      const target = await createTestUser({ email: 'pw-target2@test.com' });
+      const adminToken = generateTestToken({ userId: admin.id, email: admin.email, role: 'admin' });
+
+      const res = await request(app)
+        .post(`/api/v1/users/${target.id}/reset-password`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ newPassword: 'short' });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects reset without password', async () => {
+      const admin = await createTestUser({ email: 'pw-admin3@test.com', role: 'admin' });
+      const target = await createTestUser({ email: 'pw-target3@test.com' });
+      const adminToken = generateTestToken({ userId: admin.id, email: admin.email, role: 'admin' });
+
+      const res = await request(app)
+        .post(`/api/v1/users/${target.id}/reset-password`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({});
+
+      expect(res.status).toBe(400);
+    });
+
+    it('allows user to change password after admin reset', async () => {
+      const admin = await createTestUser({ email: 'pw-flow-admin@test.com', role: 'admin', password: 'adminpass123' });
+      const target = await createTestUser({ email: 'pw-flow-target@test.com', password: 'oldpass123' });
+      const adminToken = generateTestToken({ userId: admin.id, email: admin.email, role: 'admin' });
+
+      // Admin resets password
+      await request(app)
+        .post(`/api/v1/users/${target.id}/reset-password`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ newPassword: 'resetpass123' });
+
+      // User logs in with new password
+      const loginRes = await request(app)
+        .post('/api/v1/auth/login')
+        .send({ email: 'pw-flow-target@test.com', password: 'resetpass123' });
+
+      expect(loginRes.body.user.mustChangePassword).toBe(true);
+      const userToken = loginRes.body.accessToken;
+
+      // User changes password (using admin-set password as current)
+      const changeRes = await request(app)
+        .post('/api/v1/users/change-password')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ currentPassword: 'resetpass123', newPassword: 'myfinalpass123' });
+
+      expect(changeRes.status).toBe(200);
+
+      // User can now log in with their chosen password
+      const finalLogin = await request(app)
+        .post('/api/v1/auth/login')
+        .send({ email: 'pw-flow-target@test.com', password: 'myfinalpass123' });
+
+      expect(finalLogin.status).toBe(200);
+      expect(finalLogin.body.user.mustChangePassword).toBe(false);
     });
   });
 

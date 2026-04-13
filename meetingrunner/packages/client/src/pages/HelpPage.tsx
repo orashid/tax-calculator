@@ -161,9 +161,9 @@ MeetingRunner updates in real-time. When a team member:
 
 ### Resetting Passwords (Admin Only)
 - In the User Management page, click **Reset Password** next to a user
-- The user's existing password is not changed
-- On their next login, they will be required to change their password
-- All active sessions for that user are terminated
+- A dialog will appear where you enter a new password for the user
+- The user's password is changed immediately and all their active sessions are terminated
+- On their next login (using the password you set), they will be required to choose their own new password
 
 ### Changing Roles (Admin Only)
 - In the Admin page, use the role dropdown next to a user to switch between **admin** and **member**
@@ -177,7 +177,7 @@ MeetingRunner updates in real-time. When a team member:
 ## Password Management
 
 ### First Login
-When you first receive your account (via invite) or after an admin resets your password, you will be asked to change your password before you can continue. You will need to enter your current password along with your new password. Your new password must be at least 8 characters.
+When you first receive your account (via invite) or after an admin resets your password, you will be required to change your password before you can continue. Enter the password provided by your administrator as your current password, then choose a new password (at least 8 characters).
 
 ### Changing Your Password
 1. Click your name in the top-right corner of the navigation bar
@@ -185,8 +185,8 @@ When you first receive your account (via invite) or after an admin resets your p
 3. Enter your current password and your new password
 4. Click **Change Password** to save
 
-### If You Need to Reset Your Password
-Contact an administrator — they can reset your password from the User Management page. Your existing password will not change, but you will be required to set a new password on your next login.
+### If You Need Your Password Reset
+Contact an administrator — they can set a new password for you from the User Management page. You will then use that password to log in and will be immediately prompted to choose your own new password.
 `,
   },
   {
@@ -246,7 +246,7 @@ The User Management page is accessible from the profile dropdown menu in the top
 | **Change Role** | Switch a user between admin and member roles |
 | **Deactivate** | Disable a user's account (reversible) |
 | **Reactivate** | Re-enable a deactivated account |
-| **Reset Password** | Flag a user to change their password on next login |
+| **Reset Password** | Set a new password for the user; they must change it on next login |
 
 ### Notes
 - You cannot deactivate or change the role of your own account

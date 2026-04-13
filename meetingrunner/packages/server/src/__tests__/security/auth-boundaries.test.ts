@@ -159,6 +159,76 @@ describe('Security: Authentication & Authorization Boundaries', () => {
     });
   });
 
+  describe('Password Reset Authorization', () => {
+    it('prevents member from resetting another user password', async () => {
+      const targetUser = await createTestUser({ email: 'sec-target@test.com' });
+
+      const res = await request(app)
+        .post(`/api/v1/users/${targetUser.id}/reset-password`)
+        .set('Authorization', `Bearer ${memberToken}`)
+        .send({ newPassword: 'hackedpass123' });
+
+      expect(res.status).toBe(403);
+    });
+
+    it('allows admin to reset another user password', async () => {
+      const targetUser = await createTestUser({ email: 'sec-reset-target@test.com' });
+
+      const res = await request(app)
+        .post(`/api/v1/users/${targetUser.id}/reset-password`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ newPassword: 'newpass12345' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toContain('Password reset');
+    });
+
+    it('rejects password reset without authentication', async () => {
+      const targetUser = await createTestUser({ email: 'sec-noauth@test.com' });
+
+      const res = await request(app)
+        .post(`/api/v1/users/${targetUser.id}/reset-password`)
+        .send({ newPassword: 'newpass12345' });
+
+      expect(res.status).toBe(401);
+    });
+
+    it('rejects password reset with weak password', async () => {
+      const targetUser = await createTestUser({ email: 'sec-weak@test.com' });
+
+      const res = await request(app)
+        .post(`/api/v1/users/${targetUser.id}/reset-password`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ newPassword: '123' });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('invalidates all sessions after password reset', async () => {
+      const target = await createTestUser({ email: 'sec-session@test.com', password: 'oldpass123' });
+
+      // Target logs in to create a refresh token
+      const loginRes = await request(app)
+        .post('/api/v1/auth/login')
+        .send({ email: 'sec-session@test.com', password: 'oldpass123' });
+
+      const oldRefreshToken = loginRes.body.refreshToken;
+
+      // Admin resets password
+      await request(app)
+        .post(`/api/v1/users/${target.id}/reset-password`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ newPassword: 'newpass12345' });
+
+      // Old refresh token should be invalidated
+      const refreshRes = await request(app)
+        .post('/api/v1/auth/refresh')
+        .send({ refreshToken: oldRefreshToken });
+
+      expect(refreshRes.status).toBe(401);
+    });
+  });
+
   describe('IDOR Prevention', () => {
     it('prevents user from editing another user comment', async () => {
       const board = await createTestBoard(adminUser.id);
