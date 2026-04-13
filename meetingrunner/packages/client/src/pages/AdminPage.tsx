@@ -63,12 +63,12 @@ export default function AdminPage() {
     setActionLoading(null);
   };
 
-  const handleResetPassword = async (userId: string) => {
-    if (!confirm('Generate a new temporary password for this user?')) return;
+  const handleResetPassword = async (userId: string, displayName: string) => {
+    if (!confirm(`Reset password for ${displayName}? They will be required to set a new password on their next login.`)) return;
     setActionLoading(userId);
     try {
-      const { temporaryPassword } = await api.post<{ temporaryPassword: string }>(`/users/${userId}/reset-password`, {});
-      alert(`New temporary password:\n\n${temporaryPassword}\n\nCopy this now — it won't be shown again.`);
+      await api.post(`/users/${userId}/reset-password`, {});
+      alert(`Password reset for ${displayName}. They will be prompted to set a new password on their next login.`);
     } catch {
       // handled
     }
@@ -194,12 +194,12 @@ export default function AdminPage() {
                     {!isSelf && (
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          onClick={() => handleResetPassword(user.id)}
+                          onClick={() => handleResetPassword(user.id, user.displayName)}
                           disabled={loading}
                           className="text-xs px-2.5 py-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all font-medium disabled:opacity-40"
                           title="Reset password"
                         >
-                          Reset PW
+                          Reset Password
                         </button>
                         <button
                           onClick={() => handleToggleActive(user.id, user.isActive)}

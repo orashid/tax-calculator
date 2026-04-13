@@ -29,7 +29,7 @@ export default function ChangePasswordPage({ forced = false }: { forced?: boolea
     setIsLoading(true);
     try {
       await api.post('/users/change-password', {
-        currentPassword: forced ? undefined : currentPassword,
+        currentPassword,
         newPassword,
       });
       // Reload user to clear mustChangePassword flag
@@ -53,12 +53,10 @@ export default function ChangePasswordPage({ forced = false }: { forced?: boolea
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {forced ? 'Set Your Password' : 'Change Password'}
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900">Change Password</h1>
           <p className="text-gray-500 mt-1 text-sm">
             {forced
-              ? 'Please create a new password to continue.'
+              ? 'You are required to change your password before continuing.'
               : `Update your password${user ? `, ${user.displayName}` : ''}.`}
           </p>
         </div>
@@ -70,22 +68,20 @@ export default function ChangePasswordPage({ forced = false }: { forced?: boolea
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {!forced && (
-            <div>
-              <label htmlFor="currentPassword" className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Current Password
-              </label>
-              <input
-                id="currentPassword"
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-300 focus:bg-white outline-none transition-all"
-                placeholder="Enter current password"
-              />
-            </div>
-          )}
+          <div>
+            <label htmlFor="currentPassword" className="block text-sm font-semibold text-gray-700 mb-1.5">
+              Current Password
+            </label>
+            <input
+              id="currentPassword"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-300 focus:bg-white outline-none transition-all"
+              placeholder="Enter current password"
+            />
+          </div>
 
           <div>
             <label htmlFor="newPassword" className="block text-sm font-semibold text-gray-700 mb-1.5">

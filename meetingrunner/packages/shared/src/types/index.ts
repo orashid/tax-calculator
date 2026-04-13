@@ -48,7 +48,7 @@ export interface Card {
   id: string;
   listId: string;
   title: string;
-  description: unknown | null;
+  description: Record<string, unknown> | null;
   position: number;
   dueDate: string | null;
   createdBy: string;

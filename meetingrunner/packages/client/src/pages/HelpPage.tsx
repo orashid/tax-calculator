@@ -146,7 +146,7 @@ MeetingRunner updates in real-time. When a team member:
 - **Member** — Can use boards they're added to, create cards, comment, and manage their own profile
 
 ### Inviting Users (Admin Only)
-1. Go to **Admin** in the navigation bar
+1. Click your name in the top-right corner and select **User Management** from the dropdown
 2. Click **Invite User**
 3. Enter the user's display name, email, and role
 4. A temporary password is generated — if SMTP email is configured, the user receives an invite email automatically
@@ -160,10 +160,10 @@ MeetingRunner updates in real-time. When a team member:
 - User data is never deleted — deactivation is reversible
 
 ### Resetting Passwords (Admin Only)
-- In the Admin page, click **Reset PW** next to a user
-- A new temporary password is generated
-- If SMTP email is configured, the user receives an email with the new password
-- The user will be required to change their password on next login
+- In the User Management page, click **Reset Password** next to a user
+- The user's existing password is not changed
+- On their next login, they will be required to change their password
+- All active sessions for that user are terminated
 
 ### Changing Roles (Admin Only)
 - In the Admin page, use the role dropdown next to a user to switch between **admin** and **member**
@@ -177,7 +177,7 @@ MeetingRunner updates in real-time. When a team member:
 ## Password Management
 
 ### First Login
-When you first receive your account (via invite or after a password reset), you will be asked to set a new password before you can use the app. Your new password must be at least 8 characters.
+When you first receive your account (via invite) or after an admin resets your password, you will be asked to change your password before you can continue. You will need to enter your current password along with your new password. Your new password must be at least 8 characters.
 
 ### Changing Your Password
 1. Click your name in the top-right corner of the navigation bar
@@ -185,8 +185,8 @@ When you first receive your account (via invite or after a password reset), you 
 3. Enter your current password and your new password
 4. Click **Change Password** to save
 
-### If You Forgot Your Password
-Contact an administrator — they can reset your password from the Admin page, which will generate a new temporary password for you.
+### If You Need to Reset Your Password
+Contact an administrator — they can reset your password from the User Management page. Your existing password will not change, but you will be required to set a new password on your next login.
 `,
   },
   {
@@ -233,7 +233,7 @@ You can import existing boards from Trello using JSON or CSV export files.
     content: `
 ## Admin Portal
 
-The Admin page is accessible from the **Admin** link in the navigation bar (visible to admin users only).
+The User Management page is accessible from the profile dropdown menu in the top-right corner (visible to admin users only).
 
 ### Dashboard Overview
 - Total user count, active users, and admin count displayed at the top
@@ -246,7 +246,7 @@ The Admin page is accessible from the **Admin** link in the navigation bar (visi
 | **Change Role** | Switch a user between admin and member roles |
 | **Deactivate** | Disable a user's account (reversible) |
 | **Reactivate** | Re-enable a deactivated account |
-| **Reset PW** | Generate a new temporary password for a user |
+| **Reset Password** | Flag a user to change their password on next login |
 
 ### Notes
 - You cannot deactivate or change the role of your own account

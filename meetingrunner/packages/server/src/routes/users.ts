@@ -7,7 +7,7 @@ import { validate } from '../middleware/validate.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import crypto from 'crypto';
-import { sendInviteEmail, sendPasswordResetEmail } from '../services/emailService.js';
+import { sendInviteEmail } from '../services/emailService.js';
 
 const USER_SELECT = {
   id: true, email: true, displayName: true, role: true, avatarUrl: true,
@@ -43,18 +43,16 @@ userRoutes.post('/change-password', asyncHandler(async (req: Request, res: Respo
     throw new AppError(400, 'New password must be at least 8 characters');
   }
 
+  if (!currentPassword) {
+    throw new AppError(400, 'Current password is required');
+  }
+
   const user = await prisma.user.findUnique({ where: { id: req.user!.userId } });
   if (!user) throw new AppError(404, 'User not found');
 
-  // If user has mustChangePassword set (first login), currentPassword is not required
-  if (!user.mustChangePassword) {
-    if (!currentPassword) {
-      throw new AppError(400, 'Current password is required');
-    }
-    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!valid) {
-      throw new AppError(401, 'Current password is incorrect');
-    }
+  const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!valid) {
+    throw new AppError(401, 'Current password is incorrect');
   }
 
   const passwordHash = await bcrypt.hash(newPassword, 12);
@@ -144,24 +142,18 @@ userRoutes.post('/:id/reactivate', adminOnly, asyncHandler(async (req: Request, 
   res.json(user);
 }));
 
-// Reset password (admin only) — generates a new temp password
+// Reset password (admin only) — flags user to change password on next login
 userRoutes.post('/:id/reset-password', adminOnly, asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
 
   const targetUser = await prisma.user.findUnique({ where: { id }, select: { email: true, displayName: true } });
   if (!targetUser) throw new AppError(404, 'User not found');
 
-  const tempPassword = crypto.randomBytes(16).toString('hex');
-  const passwordHash = await bcrypt.hash(tempPassword, 12);
-
   await prisma.$transaction([
-    prisma.user.update({ where: { id }, data: { passwordHash, mustChangePassword: true } }),
+    prisma.user.update({ where: { id }, data: { mustChangePassword: true } }),
     prisma.refreshToken.deleteMany({ where: { userId: id } }),
   ]);
 
-  // Send password reset email (non-blocking)
-  sendPasswordResetEmail(targetUser.email, targetUser.displayName, tempPassword);
-
-  res.json({ temporaryPassword: tempPassword });
+  res.json({ message: `Password reset flagged for ${targetUser.displayName}. They will be prompted to set a new password on next login.` });
 }));
 
