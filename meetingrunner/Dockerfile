@@ -1,5 +1,7 @@
 FROM node:20-alpine AS builder
 
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 # Copy workspace config
@@ -15,7 +17,7 @@ RUN npm install
 COPY . .
 
 # Build shared types
-RUN npm run build -w packages/shared
+RUN rm -f packages/shared/tsconfig.tsbuildinfo && npm run build -w packages/shared
 
 # Generate Prisma client
 RUN npx prisma generate --schema=packages/server/prisma/schema.prisma
@@ -29,6 +31,8 @@ RUN npm run build -w packages/server
 # Production stage
 FROM node:20-alpine AS production
 
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 COPY --from=builder /app/package.json ./
@@ -39,7 +43,6 @@ COPY --from=builder /app/packages/server/dist ./packages/server/dist
 COPY --from=builder /app/packages/server/prisma ./packages/server/prisma
 COPY --from=builder /app/packages/client/dist ./packages/client/dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/server/node_modules ./packages/server/node_modules
 
 ENV NODE_ENV=production
 ENV PORT=3000
