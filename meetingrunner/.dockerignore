@@ -1,8 +1,8 @@
 node_modules
-dist
+**/dist
 .env
 .git
 .claude
 e2e
 test-results
-*.tsbuildinfo
+**/*.tsbuildinfo
