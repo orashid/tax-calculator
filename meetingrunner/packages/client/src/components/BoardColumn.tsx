@@ -145,7 +145,7 @@ export default function BoardColumn({ list, boardId, onCardClick }: BoardColumnP
       </div>
 
       {/* Card list */}
-      <div ref={setNodeRef} className="flex-1 overflow-y-auto px-3 pb-1 card-list min-h-[40px]">
+      <div ref={setNodeRef} className="overflow-y-auto px-3 pb-1 card-list min-h-[40px]">
         <SortableContext items={list.cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
           {list.cards.map((card, index) => (
             <CardThumbnail

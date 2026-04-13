@@ -158,7 +158,7 @@ export default function BoardPage() {
         onDragEnd={handleDragEnd}
       >
         <div className="flex-1 overflow-x-auto p-6 board-columns">
-          <div className="flex gap-4 h-full">
+          <div className="flex gap-4 items-start h-full">
             <SortableContext items={filteredLists.map((l) => l.id)} strategy={horizontalListSortingStrategy}>
               {filteredLists.map((list) => (
                 <BoardColumn
@@ -211,9 +211,9 @@ function AddListButton({ boardId }: { boardId: string }) {
     return (
       <button
         onClick={() => setIsAdding(true)}
-        className="flex-shrink-0 w-72 p-3 bg-white/40 hover:bg-white/60 backdrop-blur-sm rounded-2xl text-gray-500 hover:text-indigo-600 text-left transition-all border-2 border-dashed border-gray-300/50 hover:border-indigo-300 flex items-center gap-2 font-medium"
+        className="flex-shrink-0 w-72 h-10 px-3 bg-white/40 hover:bg-white/60 backdrop-blur-sm rounded-xl text-sm text-gray-500 hover:text-indigo-600 text-left transition-all flex items-center gap-1.5 font-medium self-start"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
         Add another list
@@ -222,22 +222,30 @@ function AddListButton({ boardId }: { boardId: string }) {
   }
 
   return (
-    <div className="flex-shrink-0 w-72 p-3 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200/60">
+    <div className="flex-shrink-0 w-72 p-3 bg-gray-100 rounded-xl self-start">
       <input
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Enter list title..."
-        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl mb-2 outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg mb-2 outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
         autoFocus
-        onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleAdd();
+          if (e.key === 'Escape') setIsAdding(false);
+        }}
       />
-      <div className="flex gap-2">
-        <button onClick={handleAdd} className="px-4 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg text-sm font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all">
+      <div className="flex items-center gap-2">
+        <button onClick={handleAdd} className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
           Add list
         </button>
-        <button onClick={() => setIsAdding(false)} className="px-3 py-1.5 text-gray-500 text-sm hover:text-gray-700 transition-colors">
-          Cancel
+        <button
+          onClick={() => setIsAdding(false)}
+          className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       </div>
     </div>
