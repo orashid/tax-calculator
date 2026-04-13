@@ -4,29 +4,33 @@ RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-# Copy workspace config
-COPY package.json package-lock.json* ./
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/server/package.json ./packages/server/
-COPY packages/client/package.json ./packages/client/
+# Copy all source at once to avoid layer caching issues
+COPY . .
 
 # Install dependencies
 RUN npm install
 
-# Copy source code (bust cache: v3)
-COPY . .
+# Clean all build artifacts
+RUN rm -rf packages/shared/dist packages/shared/tsconfig.tsbuildinfo packages/server/dist packages/client/dist
 
 # Build shared types
-RUN rm -f packages/shared/tsconfig.tsbuildinfo && npm run build -w packages/shared
+RUN npm run build -w packages/shared
 
 # Generate Prisma client
 RUN npx prisma generate --schema=packages/server/prisma/schema.prisma
 
-# Verify new files exist
-RUN ls -la packages/client/src/pages/AdminPage.tsx packages/client/src/components/TrelloImportPanel.tsx && grep -c "AdminPage" packages/client/src/App.tsx
+# Verify new files exist before building
+RUN echo "=== Checking source files ===" && \
+    ls packages/client/src/pages/AdminPage.tsx && \
+    ls packages/client/src/components/TrelloImportPanel.tsx && \
+    grep -c "AdminPage" packages/client/src/App.tsx && \
+    echo "=== Files verified ==="
 
-# Build client (skip tsc -b, Vite handles TS natively)
+# Build client
 RUN cd packages/client && npx vite build
+
+# Verify build output
+RUN ls -la packages/client/dist/assets/ && echo "=== Client build complete ==="
 
 # Build server
 RUN npm run build -w packages/server
