@@ -27,12 +27,15 @@ Welcome to **MeetingRunner** — a kanban board app built for running meeting ag
 - Each board represents a meeting type or project
 - You can see all your boards on the dashboard
 - Board creators and admins can manage board membership
+- **Delete a board** by hovering over it on the dashboard and clicking the trash icon, or from the board view using the trash icon in the top-right corner
+- Deleting a board permanently removes all its lists, cards, comments, and attachments
 
 ### Lists (Columns)
 - Lists are the vertical columns on your board
 - Click on a list title to rename it
 - Drag lists to reorder them
-- Delete a list by clicking the list menu
+- Click the **...** menu on any list header to rename or delete it
+- Deleting a list permanently removes all cards within it
 
 ### Common Board Layouts
 **Staff Meeting:**
@@ -62,6 +65,7 @@ Click on a card to open its detail view where you can:
 - **Assign Members** — Add team members responsible for this item
 - **Add Comments** — Discuss the item with threaded comments
 - **Attach Files** — Upload files related to this card
+- **Delete Card** — Click the "Delete card" button at the bottom of the card sidebar
 
 ### Due Date Colors
 - 🟢 **Green** — More than 3 days until due

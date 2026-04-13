@@ -51,6 +51,16 @@ export default function DashboardPage() {
     }
   };
 
+  const handleDeleteBoard = async (boardId: string, boardTitle: string) => {
+    if (!confirm(`Delete "${boardTitle}" and all its lists, cards, and comments? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/boards/${boardId}`);
+      await loadBoards();
+    } catch {
+      // Error handled by API client
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -122,22 +132,39 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {boards.map((board, index) => (
-          <Link
+          <div
             key={board.id}
-            to={`/boards/${board.id}`}
-            className="group block rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:-translate-y-1"
+            className="group relative rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:-translate-y-1"
           >
-            <div className={`h-24 bg-gradient-to-br ${BOARD_GRADIENTS[index % BOARD_GRADIENTS.length]} p-4 flex items-end`}>
-              <h3 className="font-bold text-white text-lg drop-shadow-sm">{board.title}</h3>
-            </div>
-            <div className="p-4 bg-white">
-              {board.description ? (
-                <p className="text-sm text-gray-500 line-clamp-2">{board.description}</p>
-              ) : (
-                <p className="text-sm text-gray-400 italic">No description</p>
-              )}
-            </div>
-          </Link>
+            <Link
+              to={`/boards/${board.id}`}
+              className="block"
+            >
+              <div className={`h-24 bg-gradient-to-br ${BOARD_GRADIENTS[index % BOARD_GRADIENTS.length]} p-4 flex items-end`}>
+                <h3 className="font-bold text-white text-lg drop-shadow-sm">{board.title}</h3>
+              </div>
+              <div className="p-4 bg-white">
+                {board.description ? (
+                  <p className="text-sm text-gray-500 line-clamp-2">{board.description}</p>
+                ) : (
+                  <p className="text-sm text-gray-400 italic">No description</p>
+                )}
+              </div>
+            </Link>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleDeleteBoard(board.id, board.title);
+              }}
+              className="absolute top-2 right-2 p-1.5 bg-black/20 hover:bg-red-500 text-white/70 hover:text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+              title="Delete board"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
         ))}
 
         {boards.length === 0 && !showCreate && (
