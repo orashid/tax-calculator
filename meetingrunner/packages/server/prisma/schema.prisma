@@ -14,8 +14,9 @@ model User {
   displayName  String   @map("display_name") @db.VarChar(100)
   role         String   @default("member") @db.VarChar(20)
   avatarUrl    String?  @map("avatar_url")
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  isActive           Boolean  @default(true) @map("is_active")
+  mustChangePassword Boolean  @default(false) @map("must_change_password")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
 
   createdBoards  Board[]        @relation("BoardCreator")

@@ -5,6 +5,7 @@ export interface User {
   role: UserRole;
   avatarUrl: string | null;
   isActive: boolean;
+  mustChangePassword: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -4,13 +4,20 @@ RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-# Copy all source at once to avoid layer caching issues
-COPY . .
+# Copy package files first for dependency caching
+COPY package.json package-lock.json* ./
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/server/package.json ./packages/server/
+COPY packages/client/package.json ./packages/client/
 
 # Install dependencies
 RUN npm install
 
-# Clean all build artifacts
+# Copy all source files — adding a unique label to bust Docker layer cache
+COPY . .
+RUN echo "build-20260413v1"
+
+# Clean all build artifacts to ensure fresh build
 RUN rm -rf packages/shared/dist packages/shared/tsconfig.tsbuildinfo packages/server/dist packages/client/dist
 
 # Build shared types
@@ -19,18 +26,11 @@ RUN npm run build -w packages/shared
 # Generate Prisma client
 RUN npx prisma generate --schema=packages/server/prisma/schema.prisma
 
-# Verify new files exist before building
-RUN echo "=== Checking source files ===" && \
-    ls packages/client/src/pages/AdminPage.tsx && \
-    ls packages/client/src/components/TrelloImportPanel.tsx && \
-    grep -c "AdminPage" packages/client/src/App.tsx && \
-    echo "=== Files verified ==="
-
 # Build client
 RUN cd packages/client && npx vite build
 
-# Verify build output
-RUN ls -la packages/client/dist/assets/ && echo "=== Client build complete ==="
+# Verify build includes new features
+RUN grep -c "Import from Trello" packages/client/dist/assets/*.js && echo "=== Import feature verified ===" || (echo "ERROR: Import feature missing from build!" && exit 1)
 
 # Build server
 RUN npm run build -w packages/server

@@ -17,6 +17,11 @@ export const inviteUserSchema = z.object({
   role: z.enum(['admin', 'member']).optional().default('member'),
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
 export const updateUserSchema = z.object({
   displayName: z.string().min(1).max(100).optional(),
   avatarUrl: z.string().url().nullable().optional(),

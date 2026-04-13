@@ -53,6 +53,7 @@ authRoutes.post('/login', validate(loginSchema), asyncHandler(async (req: Reques
       role: user.role,
       avatarUrl: user.avatarUrl,
       isActive: user.isActive,
+      mustChangePassword: user.mustChangePassword,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     },

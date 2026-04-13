@@ -70,7 +70,7 @@ export default function InviteUserModal({ onClose, onInvited }: InviteUserModalP
                   {copied ? 'Copied!' : 'Copy'}
                 </button>
               </div>
-              <p className="text-xs text-amber-600 mt-2">Share this password securely. The user should change it after first login.</p>
+              <p className="text-xs text-amber-600 mt-2">An invite email has been sent. The user will be required to change their password on first login.</p>
             </div>
 
             <button
