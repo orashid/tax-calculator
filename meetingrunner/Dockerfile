@@ -20,8 +20,8 @@ RUN npm run build -w packages/shared
 # Generate Prisma client
 RUN npx prisma generate --schema=packages/server/prisma/schema.prisma
 
-# Build client
-RUN npm run build -w packages/client
+# Build client (skip tsc -b, Vite handles TS natively)
+RUN cd packages/client && npx vite build
 
 # Build server
 RUN npm run build -w packages/server

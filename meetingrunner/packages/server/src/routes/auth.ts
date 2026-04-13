@@ -26,6 +26,10 @@ authRoutes.post('/login', validate(loginSchema), asyncHandler(async (req: Reques
     throw new AppError(401, 'Invalid email or password');
   }
 
+  if (!user.isActive) {
+    throw new AppError(403, 'Account has been deactivated. Contact an administrator.');
+  }
+
   const payload: AuthPayload = { userId: user.id, email: user.email, role: user.role };
   const accessToken = generateAccessToken(payload);
   const refreshToken = generateRefreshToken(payload);
@@ -48,6 +52,7 @@ authRoutes.post('/login', validate(loginSchema), asyncHandler(async (req: Reques
       displayName: user.displayName,
       role: user.role,
       avatarUrl: user.avatarUrl,
+      isActive: user.isActive,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     },
@@ -72,6 +77,14 @@ authRoutes.post('/refresh', validate(refreshTokenSchema), asyncHandler(async (re
   } catch {
     throw new AppError(401, 'Invalid refresh token');
   }
+
+  // Check if user is still active
+  const refreshUser = await prisma.user.findUnique({ where: { id: payload.userId }, select: { isActive: true, role: true } });
+  if (!refreshUser || !refreshUser.isActive) {
+    throw new AppError(403, 'Account has been deactivated');
+  }
+  // Use current role from DB (in case admin changed it)
+  payload.role = refreshUser.role;
 
   const newAccessToken = generateAccessToken(payload);
   const newRefreshToken = generateRefreshToken(payload);

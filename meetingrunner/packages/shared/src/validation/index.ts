@@ -21,6 +21,7 @@ export const updateUserSchema = z.object({
   displayName: z.string().min(1).max(100).optional(),
   avatarUrl: z.string().url().nullable().optional(),
   password: z.string().min(8).optional(),
+  role: z.enum(['admin', 'member']).optional(),
 });
 
 // Boards
@@ -101,4 +102,36 @@ export const addMemberSchema = z.object({
 // UUID param validation
 export const uuidParamSchema = z.object({
   id: z.string().uuid(),
+});
+
+// Trello import — use passthrough() to allow extra fields from real Trello exports
+export const trelloJsonImportSchema = z.object({
+  name: z.string().min(1),
+  desc: z.string().optional().default(''),
+  lists: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    pos: z.number(),
+    closed: z.boolean(),
+  }).passthrough()),
+  cards: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    desc: z.string().optional().default(''),
+    idList: z.string(),
+    due: z.string().nullable(),
+    pos: z.number(),
+    closed: z.boolean(),
+  }).passthrough()),
+  actions: z.array(z.object({
+    type: z.string(),
+    data: z.record(z.unknown()),
+    date: z.string(),
+    memberCreator: z.object({ fullName: z.string() }).passthrough().optional(),
+  }).passthrough()).optional().default([]),
+}).passthrough();
+
+export const trelloCsvImportSchema = z.object({
+  boardTitle: z.string().min(1).max(200),
+  csvData: z.string().min(1),
 });

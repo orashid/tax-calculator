@@ -14,6 +14,7 @@ model User {
   displayName  String   @map("display_name") @db.VarChar(100)
   role         String   @default("member") @db.VarChar(20)
   avatarUrl    String?  @map("avatar_url")
+  isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
 

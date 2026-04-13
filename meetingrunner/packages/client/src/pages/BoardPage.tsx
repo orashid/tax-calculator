@@ -59,7 +59,6 @@ export default function BoardPage() {
     const cardId = active.id as string;
     const sourceListId = active.data.current?.listId;
 
-    // Determine target list and position
     let targetListId: string;
     let targetPosition: number;
 
@@ -76,14 +75,11 @@ export default function BoardPage() {
 
     if (sourceListId === targetListId && active.data.current?.index === targetPosition) return;
 
-    // Optimistic update
     moveCard(cardId, sourceListId, targetListId, targetPosition);
 
-    // API call
     try {
       await api.post(`/cards/${cardId}/move`, { targetListId, position: targetPosition });
     } catch {
-      // Reload board on failure to restore correct state
       if (id) loadBoard(id);
     }
   };
@@ -91,12 +87,14 @@ export default function BoardPage() {
   if (isLoading || !board) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading board...</div>
+        <div className="flex items-center gap-3 text-gray-400">
+          <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+          Loading board...
+        </div>
       </div>
     );
   }
 
-  // Apply filters
   const filteredLists = board.lists.map((list) => {
     let cards = [...list.cards];
 
@@ -117,10 +115,15 @@ export default function BoardPage() {
   });
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="px-6 py-3 border-b bg-white">
+    <div className="h-full flex flex-col bg-gradient-to-br from-slate-100 via-indigo-50 to-purple-50">
+      <div className="px-6 py-3 bg-white/80 backdrop-blur-sm border-b border-gray-200/50">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">{board.title}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-bold text-gray-900">{board.title}</h1>
+            <span className="text-xs bg-indigo-100 text-indigo-600 px-2.5 py-0.5 rounded-full font-semibold">
+              {board.lists.length} lists
+            </span>
+          </div>
           <FilterBar members={board.members} />
         </div>
       </div>
@@ -186,29 +189,32 @@ function AddListButton({ boardId }: { boardId: string }) {
     return (
       <button
         onClick={() => setIsAdding(true)}
-        className="flex-shrink-0 w-72 p-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-600 text-left transition-colors"
+        className="flex-shrink-0 w-72 p-3 bg-white/40 hover:bg-white/60 backdrop-blur-sm rounded-2xl text-gray-500 hover:text-indigo-600 text-left transition-all border-2 border-dashed border-gray-300/50 hover:border-indigo-300 flex items-center gap-2 font-medium"
       >
-        + Add another list
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+        Add another list
       </button>
     );
   }
 
   return (
-    <div className="flex-shrink-0 w-72 p-3 bg-gray-100 rounded-xl">
+    <div className="flex-shrink-0 w-72 p-3 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200/60">
       <input
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Enter list title..."
-        className="w-full px-3 py-2 border rounded-lg mb-2 outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl mb-2 outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
         autoFocus
         onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
       />
       <div className="flex gap-2">
-        <button onClick={handleAdd} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+        <button onClick={handleAdd} className="px-4 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg text-sm font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all">
           Add list
         </button>
-        <button onClick={() => setIsAdding(false)} className="px-3 py-1.5 text-gray-600 hover:text-gray-800">
+        <button onClick={() => setIsAdding(false)} className="px-3 py-1.5 text-gray-500 text-sm hover:text-gray-700 transition-colors">
           Cancel
         </button>
       </div>

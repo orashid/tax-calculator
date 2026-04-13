@@ -4,6 +4,7 @@ export interface User {
   displayName: string;
   role: UserRole;
   avatarUrl: string | null;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -185,4 +186,46 @@ export interface SocketEvents {
   'member:added': { boardId: string; user: User };
   'member:removed': { boardId: string; userId: string };
   'notification:new': { notification: Notification };
+}
+
+// Trello import types
+export interface TrelloBoard {
+  name: string;
+  desc?: string;
+  lists: TrelloList[];
+  cards: TrelloCard[];
+  actions?: TrelloAction[];
+}
+
+export interface TrelloList {
+  id: string;
+  name: string;
+  pos: number;
+  closed: boolean;
+}
+
+export interface TrelloCard {
+  id: string;
+  name: string;
+  desc?: string;
+  idList: string;
+  due: string | null;
+  pos: number;
+  closed: boolean;
+}
+
+export interface TrelloAction {
+  type: string;
+  data: Record<string, unknown>;
+  date: string;
+  memberCreator?: { fullName: string };
+}
+
+export interface ImportResult {
+  boardId: string;
+  boardTitle: string;
+  listsCreated: number;
+  cardsCreated: number;
+  commentsCreated: number;
+  errors: string[];
 }

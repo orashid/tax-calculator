@@ -1,12 +1,25 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
+import TrelloImportPanel from '../components/TrelloImportPanel.js';
 import type { Board } from '@meetingrunner/shared';
+
+const BOARD_GRADIENTS = [
+  'from-blue-500 to-cyan-400',
+  'from-purple-500 to-pink-400',
+  'from-emerald-500 to-teal-400',
+  'from-orange-500 to-amber-400',
+  'from-rose-500 to-pink-400',
+  'from-indigo-500 to-violet-400',
+  'from-fuchsia-500 to-purple-400',
+  'from-cyan-500 to-blue-400',
+];
 
 export default function DashboardPage() {
   const [boards, setBoards] = useState<Board[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
 
@@ -41,7 +54,10 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading boards...</div>
+        <div className="flex items-center gap-3 text-gray-400">
+          <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+          Loading boards...
+        </div>
       </div>
     );
   }
@@ -49,65 +65,97 @@ export default function DashboardPage() {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">My Boards</h1>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-        >
-          + New Board
-        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">My Boards</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your meetings and action items</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowImport(true)}
+            className="px-4 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-semibold flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Import from Trello
+          </button>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-semibold shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Board
+          </button>
+        </div>
       </div>
 
       {showCreate && (
-        <div className="mb-6 p-4 bg-white rounded-lg shadow border">
-          <h3 className="font-semibold mb-3">Create New Board</h3>
+        <div className="mb-6 p-5 bg-white rounded-2xl shadow-lg border border-gray-100">
+          <h3 className="font-bold text-gray-800 mb-3">Create New Board</h3>
           <input
             type="text"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             placeholder="Board title"
-            className="w-full px-3 py-2 border rounded-lg mb-2 outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl mb-2 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
             autoFocus
           />
           <textarea
             value={newDescription}
             onChange={(e) => setNewDescription(e.target.value)}
             placeholder="Description (optional)"
-            className="w-full px-3 py-2 border rounded-lg mb-3 outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl mb-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white resize-none transition-all"
             rows={2}
           />
           <div className="flex gap-2">
-            <button onClick={createBoard} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button onClick={createBoard} className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 font-semibold transition-all">
               Create
             </button>
-            <button onClick={() => setShowCreate(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+            <button onClick={() => setShowCreate(false)} className="px-5 py-2 text-gray-500 hover:text-gray-700 font-medium transition-colors">
               Cancel
             </button>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {boards.map((board) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {boards.map((board, index) => (
           <Link
             key={board.id}
             to={`/boards/${board.id}`}
-            className="block p-4 bg-white rounded-lg shadow border hover:shadow-md transition-shadow"
+            className="group block rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:-translate-y-1"
           >
-            <h3 className="font-semibold text-gray-900 mb-1">{board.title}</h3>
-            {board.description && (
-              <p className="text-sm text-gray-500 line-clamp-2">{board.description}</p>
-            )}
+            <div className={`h-24 bg-gradient-to-br ${BOARD_GRADIENTS[index % BOARD_GRADIENTS.length]} p-4 flex items-end`}>
+              <h3 className="font-bold text-white text-lg drop-shadow-sm">{board.title}</h3>
+            </div>
+            <div className="p-4 bg-white">
+              {board.description ? (
+                <p className="text-sm text-gray-500 line-clamp-2">{board.description}</p>
+              ) : (
+                <p className="text-sm text-gray-400 italic">No description</p>
+              )}
+            </div>
           </Link>
         ))}
 
         {boards.length === 0 && !showCreate && (
-          <div className="col-span-full text-center py-12 text-gray-500">
-            <p className="text-lg mb-2">No boards yet</p>
-            <p>Create your first board to get started</p>
+          <div className="col-span-full text-center py-16">
+            <div className="w-16 h-16 bg-indigo-100 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+              <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <p className="text-lg font-semibold text-gray-700 mb-1">No boards yet</p>
+            <p className="text-gray-400">Create your first board to get started</p>
           </div>
         )}
       </div>
+
+      {showImport && (
+        <TrelloImportPanel onClose={() => { setShowImport(false); loadBoards(); }} />
+      )}
     </div>
   );
 }

@@ -46,6 +46,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   addList: (list) => {
     const board = get().board;
     if (!board) return;
+    if (board.lists.some((l) => l.id === list.id)) return;
     set({ board: { ...board, lists: [...board.lists, { ...list, cards: [] }] } });
   },
 
@@ -81,7 +82,9 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       board: {
         ...board,
         lists: board.lists.map((l) =>
-          l.id === listId ? { ...l, cards: [...l.cards, card] } : l,
+          l.id === listId
+            ? { ...l, cards: l.cards.some((c) => c.id === card.id) ? l.cards : [...l.cards, card] }
+            : l,
         ),
       },
     });
