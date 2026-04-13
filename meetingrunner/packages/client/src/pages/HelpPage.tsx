@@ -36,7 +36,7 @@ Welcome to **MeetingRunner** — a kanban board app built for running meeting ag
 - You can see all your boards on the dashboard
 - Any board member can add other users to the board; board creators and admins can also remove members
 - Click the member avatars at the top of the board to open the member management panel
-- **Delete a board** by hovering over it on the dashboard and clicking the trash icon, or from the board view using the trash icon in the top-right corner
+- **Delete a board** by hovering over it on the dashboard and clicking the trash icon
 - Deleting a board permanently removes all its lists, cards, comments, and attachments
 
 ### Lists (Columns)
