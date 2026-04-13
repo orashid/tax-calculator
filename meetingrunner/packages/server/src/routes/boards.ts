@@ -142,7 +142,11 @@ boardRoutes.post('/:id/members', validate(addMemberSchema), asyncHandler(async (
   const board = await prisma.board.findUnique({ where: { id } });
   if (!board) throw new AppError(404, 'Board not found');
 
-  if (board.createdBy !== req.user!.userId && req.user!.role !== 'admin') {
+  // Any board member can add users; admins can always add
+  const isMember = await prisma.boardMember.findUnique({
+    where: { boardId_userId: { boardId: id, userId: req.user!.userId } },
+  });
+  if (!isMember && req.user!.role !== 'admin') {
     throw new AppError(403, 'Not authorized to manage board members');
   }
 
