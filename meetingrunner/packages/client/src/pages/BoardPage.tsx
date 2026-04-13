@@ -126,20 +126,34 @@ export default function BoardPage() {
   });
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-100 via-indigo-50 to-purple-50">
-      <div className="px-6 py-3 bg-white/80 backdrop-blur-sm border-b border-gray-200/50">
+    <div className="h-full flex flex-col board-bg">
+      <div className="px-6 py-2.5 bg-black/30 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-gray-900">{board.title}</h1>
-            <span className="text-xs bg-indigo-100 text-indigo-600 px-2.5 py-0.5 rounded-full font-semibold">
-              {board.lists.length} lists
-            </span>
+            <h1 className="text-lg font-bold text-white">{board.title}</h1>
+            {/* Member avatars */}
+            <div className="flex -space-x-1.5 ml-2">
+              {board.members.slice(0, 5).map((m) => (
+                <div
+                  key={m.id}
+                  className="w-7 h-7 rounded-full bg-indigo-500 text-white text-xs flex items-center justify-center border-2 border-white/30 font-semibold"
+                  title={m.displayName}
+                >
+                  {m.displayName.charAt(0).toUpperCase()}
+                </div>
+              ))}
+              {board.members.length > 5 && (
+                <div className="w-7 h-7 rounded-full bg-gray-500/80 text-white text-xs flex items-center justify-center border-2 border-white/30 font-semibold">
+                  +{board.members.length - 5}
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <FilterBar members={board.members} />
             <button
               onClick={handleDeleteBoard}
-              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+              className="p-2 text-white/60 hover:text-red-300 hover:bg-white/10 rounded-lg transition-all"
               title="Delete board"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,7 +225,7 @@ function AddListButton({ boardId }: { boardId: string }) {
     return (
       <button
         onClick={() => setIsAdding(true)}
-        className="flex-shrink-0 w-72 h-10 px-3 bg-white/40 hover:bg-white/60 backdrop-blur-sm rounded-xl text-sm text-gray-500 hover:text-indigo-600 text-left transition-all flex items-center gap-1.5 font-medium self-start"
+        className="flex-shrink-0 w-72 h-10 px-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl text-sm text-white/80 hover:text-white text-left transition-all flex items-center gap-1.5 font-medium self-start"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -222,7 +236,7 @@ function AddListButton({ boardId }: { boardId: string }) {
   }
 
   return (
-    <div className="flex-shrink-0 w-72 p-3 bg-gray-100 rounded-xl self-start">
+    <div className="flex-shrink-0 w-72 p-3 bg-gray-200/80 backdrop-blur-sm rounded-xl self-start">
       <input
         type="text"
         value={title}

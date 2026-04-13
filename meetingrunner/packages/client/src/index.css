@@ -12,26 +12,37 @@ body {
   @apply bg-white/60 backdrop-blur-sm border border-white/20;
 }
 
+/* Board background — scenic mountain image */
+.board-bg {
+  background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
 /* Scrollbar styling for board columns */
 .board-columns::-webkit-scrollbar {
-  height: 8px;
+  height: 10px;
 }
 .board-columns::-webkit-scrollbar-track {
-  @apply bg-transparent rounded;
+  @apply bg-black/10 rounded;
 }
 .board-columns::-webkit-scrollbar-thumb {
-  @apply bg-white/30 rounded-full;
+  @apply bg-white/40 rounded-full;
+}
+.board-columns::-webkit-scrollbar-thumb:hover {
+  @apply bg-white/60;
 }
 
 /* Card list scrollbar */
 .card-list::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 .card-list::-webkit-scrollbar-track {
   @apply bg-transparent;
 }
 .card-list::-webkit-scrollbar-thumb {
-  @apply bg-gray-300/50 rounded-full;
+  @apply bg-gray-400/40 rounded-full;
 }
 
 /* TipTap editor styles */

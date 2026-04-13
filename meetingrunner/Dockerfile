@@ -15,7 +15,7 @@ RUN npm install
 
 # Copy all source files — adding a unique label to bust Docker layer cache
 COPY . .
-RUN echo "build-20260413v4"
+RUN echo "build-20260413v5"
 
 # Clean all build artifacts to ensure fresh build
 RUN rm -rf packages/shared/dist packages/shared/tsconfig.tsbuildinfo packages/server/dist packages/client/dist

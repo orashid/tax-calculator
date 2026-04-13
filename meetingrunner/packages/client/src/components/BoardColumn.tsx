@@ -77,7 +77,7 @@ export default function BoardColumn({ list, boardId, onCardClick }: BoardColumnP
 
   return (
     <div
-      className={`flex-shrink-0 w-72 bg-gray-100 rounded-xl flex flex-col max-h-full ${
+      className={`flex-shrink-0 w-72 bg-gray-200/80 backdrop-blur-sm rounded-xl flex flex-col max-h-full ${
         isOver ? 'ring-2 ring-blue-400' : ''
       }`}
     >
