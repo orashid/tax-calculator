@@ -153,12 +153,13 @@ export default function BoardPage() {
             {/* Add/manage members button */}
             <button
               onClick={() => setShowMembers(true)}
-              className="flex items-center gap-1.5 ml-1 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 ml-1 px-3 py-1.5 bg-white hover:bg-gray-100 rounded-lg text-indigo-700 text-sm font-semibold transition-colors shadow-sm"
+              title="Add or manage board members"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
-              Members
+              + Add Members
             </button>
           </div>
           <div className="flex items-center gap-2">
