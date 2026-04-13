@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api/client.js';
 import InviteUserModal from '../components/InviteUserModal.js';
+import ResetPasswordModal from '../components/ResetPasswordModal.js';
 import type { User } from '@meetingrunner/shared';
 import { useAuthStore } from '../stores/authStore.js';
 
@@ -19,6 +20,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showInvite, setShowInvite] = useState(false);
+  const [resetTarget, setResetTarget] = useState<{ id: string; displayName: string } | null>(null);
   const [search, setSearch] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const currentUser = useAuthStore((s) => s.user);
@@ -63,16 +65,8 @@ export default function AdminPage() {
     setActionLoading(null);
   };
 
-  const handleResetPassword = async (userId: string, displayName: string) => {
-    if (!confirm(`Reset password for ${displayName}? They will be required to set a new password on their next login.`)) return;
-    setActionLoading(userId);
-    try {
-      await api.post(`/users/${userId}/reset-password`, {});
-      alert(`Password reset for ${displayName}. They will be prompted to set a new password on their next login.`);
-    } catch {
-      // handled
-    }
-    setActionLoading(null);
+  const handleResetPassword = (userId: string, displayName: string) => {
+    setResetTarget({ id: userId, displayName });
   };
 
   const filteredUsers = users.filter((u) =>
@@ -232,6 +226,14 @@ export default function AdminPage() {
         <InviteUserModal
           onClose={() => setShowInvite(false)}
           onInvited={loadUsers}
+        />
+      )}
+
+      {resetTarget && (
+        <ResetPasswordModal
+          userId={resetTarget.id}
+          displayName={resetTarget.displayName}
+          onClose={() => setResetTarget(null)}
         />
       )}
     </div>

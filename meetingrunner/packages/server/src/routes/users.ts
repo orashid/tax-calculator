@@ -142,18 +142,25 @@ userRoutes.post('/:id/reactivate', adminOnly, asyncHandler(async (req: Request, 
   res.json(user);
 }));
 
-// Reset password (admin only) — flags user to change password on next login
+// Reset password (admin only) — sets a new password and flags user to change it on next login
 userRoutes.post('/:id/reset-password', adminOnly, asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { newPassword } = req.body;
+
+  if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+    throw new AppError(400, 'New password must be at least 8 characters');
+  }
 
   const targetUser = await prisma.user.findUnique({ where: { id }, select: { email: true, displayName: true } });
   if (!targetUser) throw new AppError(404, 'User not found');
 
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+
   await prisma.$transaction([
-    prisma.user.update({ where: { id }, data: { mustChangePassword: true } }),
+    prisma.user.update({ where: { id }, data: { passwordHash, mustChangePassword: true } }),
     prisma.refreshToken.deleteMany({ where: { userId: id } }),
   ]);
 
-  res.json({ message: `Password reset flagged for ${targetUser.displayName}. They will be prompted to set a new password on next login.` });
+  res.json({ message: `Password reset for ${targetUser.displayName}. They will be prompted to change their password on next login.` });
 }));
 
