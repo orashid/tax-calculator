@@ -55,6 +55,11 @@ userRoutes.post('/change-password', asyncHandler(async (req: Request, res: Respo
     throw new AppError(401, 'Current password is incorrect');
   }
 
+  const sameAsOld = await bcrypt.compare(newPassword, user.passwordHash);
+  if (sameAsOld) {
+    throw new AppError(400, 'New password must be different from your current password');
+  }
+
   const passwordHash = await bcrypt.hash(newPassword, 12);
   await prisma.user.update({
     where: { id: user.id },

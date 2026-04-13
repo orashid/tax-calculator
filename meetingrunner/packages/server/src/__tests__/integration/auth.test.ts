@@ -66,6 +66,33 @@ describe('Auth Routes', () => {
     });
   });
 
+  describe('POST /api/v1/users/change-password', () => {
+    it('rejects reusing the current password', async () => {
+      const user = await createTestUser({ email: 'reuse@test.com', password: 'mypassword123' });
+      const token = generateTestToken({ userId: user.id, email: user.email, role: 'member' });
+
+      const res = await request(app)
+        .post('/api/v1/users/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'mypassword123', newPassword: 'mypassword123' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toContain('different');
+    });
+
+    it('allows changing to a new password', async () => {
+      const user = await createTestUser({ email: 'change@test.com', password: 'oldpass123' });
+      const token = generateTestToken({ userId: user.id, email: user.email, role: 'member' });
+
+      const res = await request(app)
+        .post('/api/v1/users/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'oldpass123', newPassword: 'newpass456' });
+
+      expect(res.status).toBe(200);
+    });
+  });
+
   describe('POST /api/v1/auth/refresh', () => {
     it('rotates tokens on valid refresh', async () => {
       const user = await createTestUser({ email: 'refresh@test.com', password: 'testpass123' });
