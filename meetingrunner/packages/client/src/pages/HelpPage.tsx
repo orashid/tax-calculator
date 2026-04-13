@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useAuthStore } from '../stores/authStore.js';
 
-const helpSections = [
+interface HelpSection {
+  id: string;
+  title: string;
+  content: string;
+  role?: 'admin'; // if set, only visible to that role; if omitted, visible to all
+}
+
+const helpSections: HelpSection[] = [
   {
     id: 'getting-started',
     title: 'Getting Started',
@@ -136,48 +144,13 @@ MeetingRunner updates in real-time. When a team member:
 `,
   },
   {
-    id: 'user-management',
-    title: 'User Management',
-    content: `
-## User Management
-
-### Roles
-- **Admin** — Can manage users (invite, deactivate, reset passwords, update roles), manage all boards, and perform all actions
-- **Member** — Can use boards they're added to, create cards, comment, and manage their own profile
-
-### Inviting Users (Admin Only)
-1. Click your name in the top-right corner and select **User Management** from the dropdown
-2. Click **Invite User**
-3. Enter the user's display name, email, and role
-4. A temporary password is generated — if SMTP email is configured, the user receives an invite email automatically
-5. If email is not configured, copy the temporary password and share it securely with the user
-6. The user will be required to **change their password on first login**
-
-### Deactivating / Reactivating Users (Admin Only)
-- In the Admin page, click **Deactivate** next to a user to disable their account
-- Deactivated users cannot log in and all their active sessions are terminated
-- Click **Reactivate** to restore access
-- User data is never deleted — deactivation is reversible
-
-### Resetting Passwords (Admin Only)
-- In the User Management page, click **Reset Password** next to a user
-- A dialog will appear where you enter a new password for the user
-- The user's password is changed immediately and all their active sessions are terminated
-- On their next login (using the password you set), they will be required to choose their own new password
-
-### Changing Roles (Admin Only)
-- In the Admin page, use the role dropdown next to a user to switch between **admin** and **member**
-- You cannot change your own role
-`,
-  },
-  {
     id: 'password',
     title: 'Password Management',
     content: `
 ## Password Management
 
 ### First Login
-When you first receive your account (via invite) or after an admin resets your password, you will be required to change your password before you can continue. Enter the password provided by your administrator as your current password, then choose a new password (at least 8 characters).
+When you first receive your account (via invite) or after an admin resets your password, you will be required to change your password before you can continue. Enter the password provided by your administrator as your current password, then choose a new password (at least 8 characters). You cannot reuse your current password as your new password.
 
 ### Changing Your Password
 1. Click your name in the top-right corner of the navigation bar
@@ -228,8 +201,45 @@ You can import existing boards from Trello using JSON or CSV export files.
 `,
   },
   {
+    id: 'user-management',
+    title: 'User Management',
+    role: 'admin',
+    content: `
+## User Management
+
+### Roles
+- **Admin** — Can manage users (invite, deactivate, reset passwords, update roles), manage all boards, and perform all actions
+- **Member** — Can use boards they're added to, create cards, comment, and manage their own profile
+
+### Inviting Users
+1. Click your name in the top-right corner and select **User Management** from the dropdown
+2. Click **Invite User**
+3. Enter the user's display name, email, and role
+4. A temporary password is generated — if SMTP email is configured, the user receives an invite email automatically
+5. If email is not configured, copy the temporary password and share it securely with the user
+6. The user will be required to **change their password on first login**
+
+### Deactivating / Reactivating Users
+- In the User Management page, click **Deactivate** next to a user to disable their account
+- Deactivated users cannot log in and all their active sessions are terminated
+- Click **Reactivate** to restore access
+- User data is never deleted — deactivation is reversible
+
+### Resetting Passwords
+- In the User Management page, click **Reset Password** next to a user
+- A dialog will appear where you enter a new password for the user
+- The user's password is changed immediately and all their active sessions are terminated
+- On their next login (using the password you set), they will be required to choose their own new password
+
+### Changing Roles
+- In the User Management page, use the role dropdown next to a user to switch between **admin** and **member**
+- You cannot change your own role
+`,
+  },
+  {
     id: 'admin-portal',
     title: 'Admin Portal',
+    role: 'admin',
     content: `
 ## Admin Portal
 
@@ -259,14 +269,18 @@ The User Management page is accessible from the profile dropdown menu in the top
 export default function HelpPage() {
   const [search, setSearch] = useState('');
   const [activeSection, setActiveSection] = useState('getting-started');
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'admin';
+
+  const visibleSections = helpSections.filter((s) => !s.role || (s.role === 'admin' && isAdmin));
 
   const filteredSections = search
-    ? helpSections.filter(
+    ? visibleSections.filter(
         (s) =>
           s.title.toLowerCase().includes(search.toLowerCase()) ||
           s.content.toLowerCase().includes(search.toLowerCase()),
       )
-    : helpSections;
+    : visibleSections;
 
   const currentSection = filteredSections.find((s) => s.id === activeSection) || filteredSections[0];
 
