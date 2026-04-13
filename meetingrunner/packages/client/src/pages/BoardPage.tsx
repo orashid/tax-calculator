@@ -19,6 +19,7 @@ import BoardColumn from '../components/BoardColumn.js';
 import CardThumbnail from '../components/CardThumbnail.js';
 import FilterBar from '../components/FilterBar.js';
 import CardModal from '../components/CardModal.js';
+import BoardMembersModal from '../components/BoardMembersModal.js';
 import type { CardSummary } from '@meetingrunner/shared';
 
 export default function BoardPage() {
@@ -27,6 +28,7 @@ export default function BoardPage() {
   const { board, isLoading, loadBoard, filterAssignee, sortByDueDate, moveCard } = useBoardStore();
   const [activeCard, setActiveCard] = useState<CardSummary | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [showMembers, setShowMembers] = useState(false);
 
   useSocket(id);
 
@@ -131,23 +133,32 @@ export default function BoardPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-bold text-white">{board.title}</h1>
-            {/* Member avatars */}
-            <div className="flex -space-x-1.5 ml-2">
-              {board.members.slice(0, 5).map((m) => (
-                <div
-                  key={m.id}
-                  className="w-7 h-7 rounded-full bg-indigo-500 text-white text-xs flex items-center justify-center border-2 border-white/30 font-semibold"
-                  title={m.displayName}
-                >
-                  {m.displayName.charAt(0).toUpperCase()}
-                </div>
-              ))}
-              {board.members.length > 5 && (
-                <div className="w-7 h-7 rounded-full bg-gray-500/80 text-white text-xs flex items-center justify-center border-2 border-white/30 font-semibold">
-                  +{board.members.length - 5}
-                </div>
-              )}
-            </div>
+            {/* Member avatars — click to manage */}
+            <button
+              onClick={() => setShowMembers(true)}
+              className="flex items-center gap-1.5 ml-2 px-2 py-1 rounded-lg hover:bg-white/10 transition-colors"
+              title="Manage board members"
+            >
+              <div className="flex -space-x-1.5">
+                {board.members.slice(0, 5).map((m) => (
+                  <div
+                    key={m.id}
+                    className="w-7 h-7 rounded-full bg-indigo-500 text-white text-xs flex items-center justify-center border-2 border-white/30 font-semibold"
+                    title={m.displayName}
+                  >
+                    {m.displayName.charAt(0).toUpperCase()}
+                  </div>
+                ))}
+                {board.members.length > 5 && (
+                  <div className="w-7 h-7 rounded-full bg-gray-500/80 text-white text-xs flex items-center justify-center border-2 border-white/30 font-semibold">
+                    +{board.members.length - 5}
+                  </div>
+                )}
+              </div>
+              <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+            </button>
           </div>
           <div className="flex items-center gap-2">
             <FilterBar members={board.members} />
@@ -198,6 +209,16 @@ export default function BoardPage() {
           cardId={selectedCardId}
           boardMembers={board.members}
           onClose={() => setSelectedCardId(null)}
+        />
+      )}
+
+      {showMembers && (
+        <BoardMembersModal
+          boardId={board.id}
+          currentMembers={board.members}
+          boardCreatedBy={board.createdBy}
+          onClose={() => setShowMembers(false)}
+          onMembersChanged={() => { if (id) loadBoard(id); }}
         />
       )}
     </div>

@@ -129,7 +129,7 @@ describe('Board Routes', () => {
   });
 
   describe('Board Members', () => {
-    it('adds a member to the board', async () => {
+    it('creator adds a member to the board', async () => {
       const board = await createTestBoard(adminUser.id);
 
       const res = await request(app)
@@ -138,6 +138,35 @@ describe('Board Routes', () => {
         .send({ userId: memberUser.id });
 
       expect(res.status).toBe(201);
+    });
+
+    it('board member can add another user to the board', async () => {
+      const board = await createTestBoard(adminUser.id);
+      await testPrisma.boardMember.create({
+        data: { boardId: board.id, userId: memberUser.id },
+      });
+
+      const thirdUser = await createTestUser({ email: 'third@test.com' });
+
+      const res = await request(app)
+        .post(`/api/v1/boards/${board.id}/members`)
+        .set('Authorization', `Bearer ${memberToken}`)
+        .send({ userId: thirdUser.id });
+
+      expect(res.status).toBe(201);
+    });
+
+    it('non-member cannot add members to the board', async () => {
+      const board = await createTestBoard(adminUser.id);
+      const thirdUser = await createTestUser({ email: 'third@test.com' });
+
+      // memberUser is NOT a member of this board
+      const res = await request(app)
+        .post(`/api/v1/boards/${board.id}/members`)
+        .set('Authorization', `Bearer ${memberToken}`)
+        .send({ userId: thirdUser.id });
+
+      expect(res.status).toBe(403);
     });
 
     it('removes a member from the board', async () => {
@@ -151,6 +180,19 @@ describe('Board Routes', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(204);
+    });
+
+    it('board member cannot remove other members (only creator/admin)', async () => {
+      const board = await createTestBoard(adminUser.id);
+      await testPrisma.boardMember.create({
+        data: { boardId: board.id, userId: memberUser.id },
+      });
+
+      const res = await request(app)
+        .delete(`/api/v1/boards/${board.id}/members/${adminUser.id}`)
+        .set('Authorization', `Bearer ${memberToken}`);
+
+      expect(res.status).toBe(403);
     });
   });
 });

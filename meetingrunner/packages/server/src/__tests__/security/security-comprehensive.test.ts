@@ -239,11 +239,23 @@ describe('Security — Comprehensive', () => {
       expect(res.status).toBe(400);
     });
 
-    it('only board creator or admin can add members', async () => {
+    it('board member can add other members', async () => {
       const board = await createTestBoard(memberUser.id);
       await testPrisma.boardMember.create({ data: { boardId: board.id, userId: member2User.id } });
 
-      // member2 (not creator) tries to add admin
+      // member2 (board member, not creator) can add admin
+      const res = await request(app)
+        .post(`/api/v1/boards/${board.id}/members`)
+        .set('Authorization', `Bearer ${member2Token}`)
+        .send({ userId: adminUser.id });
+
+      expect(res.status).toBe(201);
+    });
+
+    it('non-member cannot add members to a board', async () => {
+      const board = await createTestBoard(memberUser.id);
+
+      // member2 is NOT a board member
       const res = await request(app)
         .post(`/api/v1/boards/${board.id}/members`)
         .set('Authorization', `Bearer ${member2Token}`)

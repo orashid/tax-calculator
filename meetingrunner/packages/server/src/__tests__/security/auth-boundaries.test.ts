@@ -119,7 +119,7 @@ describe('Security: Authentication & Authorization Boundaries', () => {
       expect(res.status).toBe(403);
     });
 
-    it('prevents non-creator from managing board members', async () => {
+    it('allows board member to add other members', async () => {
       const board = await createTestBoard(adminUser.id);
       // Add member first
       await testPrisma.boardMember.create({
@@ -128,6 +128,19 @@ describe('Security: Authentication & Authorization Boundaries', () => {
 
       const otherUser = await createTestUser({ email: 'other@test.com' });
 
+      const res = await request(app)
+        .post(`/api/v1/boards/${board.id}/members`)
+        .set('Authorization', `Bearer ${memberToken}`)
+        .send({ userId: otherUser.id });
+
+      expect(res.status).toBe(201);
+    });
+
+    it('prevents non-member from adding board members', async () => {
+      const board = await createTestBoard(adminUser.id);
+      const otherUser = await createTestUser({ email: 'other@test.com' });
+
+      // memberUser is NOT a member of this board
       const res = await request(app)
         .post(`/api/v1/boards/${board.id}/members`)
         .set('Authorization', `Bearer ${memberToken}`)
