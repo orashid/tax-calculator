@@ -138,15 +138,116 @@ MeetingRunner updates in real-time. When a team member:
 ## User Management
 
 ### Roles
-- **Admin** — Can manage users (invite, update roles), manage all boards, and perform all actions
+- **Admin** — Can manage users (invite, deactivate, reset passwords, update roles), manage all boards, and perform all actions
 - **Member** — Can use boards they're added to, create cards, comment, and manage their own profile
 
 ### Inviting Users (Admin Only)
-Admins can invite new users, who receive a temporary password to log in with.
+1. Go to **Admin** in the navigation bar
+2. Click **Invite User**
+3. Enter the user's display name, email, and role
+4. A temporary password is generated — if SMTP email is configured, the user receives an invite email automatically
+5. If email is not configured, copy the temporary password and share it securely with the user
+6. The user will be required to **change their password on first login**
 
-### Updating Your Profile
-- Click your name in the top-right corner
-- You can update your display name and password
+### Deactivating / Reactivating Users (Admin Only)
+- In the Admin page, click **Deactivate** next to a user to disable their account
+- Deactivated users cannot log in and all their active sessions are terminated
+- Click **Reactivate** to restore access
+- User data is never deleted — deactivation is reversible
+
+### Resetting Passwords (Admin Only)
+- In the Admin page, click **Reset PW** next to a user
+- A new temporary password is generated
+- If SMTP email is configured, the user receives an email with the new password
+- The user will be required to change their password on next login
+
+### Changing Roles (Admin Only)
+- In the Admin page, use the role dropdown next to a user to switch between **admin** and **member**
+- You cannot change your own role
+`,
+  },
+  {
+    id: 'password',
+    title: 'Password Management',
+    content: `
+## Password Management
+
+### First Login
+When you first receive your account (via invite or after a password reset), you will be asked to set a new password before you can use the app. Your new password must be at least 8 characters.
+
+### Changing Your Password
+1. Click your name in the top-right corner of the navigation bar
+2. Select **Change Password** from the dropdown menu
+3. Enter your current password and your new password
+4. Click **Change Password** to save
+
+### If You Forgot Your Password
+Contact an administrator — they can reset your password from the Admin page, which will generate a new temporary password for you.
+`,
+  },
+  {
+    id: 'trello-import',
+    title: 'Importing from Trello',
+    content: `
+## Importing from Trello
+
+You can import existing boards from Trello using JSON or CSV export files.
+
+### JSON Import (Recommended)
+1. In Trello, go to the board you want to export
+2. Click **Menu > More > Print and Export > Export as JSON**
+3. In MeetingRunner, go to the **Dashboard**
+4. Click **Import from Trello**
+5. Select the **JSON** tab, then drag and drop your JSON file or click to browse
+6. Preview the board name, list count, and card count
+7. Click **Import Board** — your board will be created with all lists, cards, and comments
+
+### CSV Import
+1. In Trello, export your board as CSV
+2. In MeetingRunner, click **Import from Trello** on the Dashboard
+3. Select the **CSV** tab
+4. Enter a board title, then paste or upload your CSV data
+5. Click **Import Board**
+
+### What Gets Imported
+- Board name and description
+- All open lists (closed/archived lists are skipped)
+- All open cards with titles, descriptions, due dates, and positions
+- Comments from Trello's action history
+- Descriptions are converted to rich text format
+
+### What Does NOT Get Imported
+- Attachments (files are not transferred)
+- Card labels/tags
+- Checklists
+- Board members (you'll need to add members manually)
+`,
+  },
+  {
+    id: 'admin-portal',
+    title: 'Admin Portal',
+    content: `
+## Admin Portal
+
+The Admin page is accessible from the **Admin** link in the navigation bar (visible to admin users only).
+
+### Dashboard Overview
+- Total user count, active users, and admin count displayed at the top
+- Searchable user table with name, email, role, and status
+
+### Available Actions
+| Action | Description |
+|--------|-------------|
+| **Invite User** | Create a new user account with a temporary password |
+| **Change Role** | Switch a user between admin and member roles |
+| **Deactivate** | Disable a user's account (reversible) |
+| **Reactivate** | Re-enable a deactivated account |
+| **Reset PW** | Generate a new temporary password for a user |
+
+### Notes
+- You cannot deactivate or change the role of your own account
+- Deactivated users retain their data but cannot log in
+- Password resets invalidate all active sessions for that user
 `,
   },
 ];
