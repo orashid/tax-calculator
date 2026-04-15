@@ -1,5 +1,6 @@
 import { Server as SocketIOServer } from 'socket.io';
 import jwt from 'jsonwebtoken';
+import cookie from 'cookie';
 import { initSocketService } from './socketService.js';
 import { AuthPayload, JWT_SECRET } from '../middleware/auth.js';
 import { prisma } from '../db.js';
@@ -7,9 +8,16 @@ import { prisma } from '../db.js';
 export function setupWebSocket(io: SocketIOServer): void {
   initSocketService(io);
 
-  // Auth middleware for socket connections
+  // Auth middleware for socket connections — read token from cookie or handshake auth
   io.use((socket, next) => {
-    const token = socket.handshake.auth.token;
+    let token = socket.handshake.auth.token;
+
+    // Fall back to cookie if no auth token provided
+    if (!token && socket.handshake.headers.cookie) {
+      const cookies = cookie.parse(socket.handshake.headers.cookie);
+      token = cookies.accessToken;
+    }
+
     if (!token) {
       return next(new Error('Authentication required'));
     }

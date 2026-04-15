@@ -8,8 +8,6 @@ import {
   moveCardSchema,
   createCommentSchema,
   updateCommentSchema,
-  presignSchema,
-  confirmAttachmentSchema,
   reorderSchema,
   addAssigneeSchema,
   refreshTokenSchema,
@@ -197,60 +195,6 @@ describe('Validation Schemas — Comprehensive Boundary Tests', () => {
 
     it('rejects body at 10001 chars', () => {
       expect(() => updateCommentSchema.parse({ body: 'X'.repeat(10001) })).toThrow();
-    });
-  });
-
-  // ─── ATTACHMENT SCHEMAS ─────────────────────────────────────────
-
-  describe('confirmAttachmentSchema — boundaries', () => {
-    it('accepts fileSize at exactly 1 byte', () => {
-      expect(() => confirmAttachmentSchema.parse({
-        fileKey: 'k', filename: 'f', fileSize: 1, mimeType: 'text/plain',
-      })).not.toThrow();
-    });
-
-    it('accepts fileSize at exactly 25MB', () => {
-      expect(() => confirmAttachmentSchema.parse({
-        fileKey: 'k', filename: 'f', fileSize: 25 * 1024 * 1024, mimeType: 'text/plain',
-      })).not.toThrow();
-    });
-
-    it('rejects fileSize at 25MB + 1 byte', () => {
-      expect(() => confirmAttachmentSchema.parse({
-        fileKey: 'k', filename: 'f', fileSize: 25 * 1024 * 1024 + 1, mimeType: 'text/plain',
-      })).toThrow();
-    });
-
-    it('rejects zero fileSize', () => {
-      expect(() => confirmAttachmentSchema.parse({
-        fileKey: 'k', filename: 'f', fileSize: 0, mimeType: 'text/plain',
-      })).toThrow();
-    });
-
-    it('rejects negative fileSize', () => {
-      expect(() => confirmAttachmentSchema.parse({
-        fileKey: 'k', filename: 'f', fileSize: -1, mimeType: 'text/plain',
-      })).toThrow();
-    });
-
-    it('rejects non-integer fileSize', () => {
-      expect(() => confirmAttachmentSchema.parse({
-        fileKey: 'k', filename: 'f', fileSize: 1.5, mimeType: 'text/plain',
-      })).toThrow();
-    });
-  });
-
-  describe('presignSchema — boundaries', () => {
-    it('rejects empty filename', () => {
-      expect(() => presignSchema.parse({ filename: '', mimeType: 'text/plain' })).toThrow();
-    });
-
-    it('rejects empty mimeType', () => {
-      expect(() => presignSchema.parse({ filename: 'f.txt', mimeType: '' })).toThrow();
-    });
-
-    it('accepts filename at 500 chars', () => {
-      expect(() => presignSchema.parse({ filename: 'a'.repeat(500), mimeType: 'text/plain' })).not.toThrow();
     });
   });
 

@@ -11,22 +11,11 @@ export class ApiError extends Error {
   }
 }
 
-async function getHeaders(): Promise<HeadersInit> {
-  const headers: HeadersInit = { 'Content-Type': 'application/json' };
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  return headers;
-}
-
 async function handleResponse<T>(response: Response): Promise<T> {
-  if (response.status === 401 && localStorage.getItem('accessToken')) {
-    // Try token refresh only if we had a session
+  if (response.status === 401) {
+    // Try token refresh
     const refreshed = await tryRefreshToken();
     if (!refreshed) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
       window.location.href = '/login';
       throw new ApiError(401, 'Session expired');
     }
@@ -43,22 +32,12 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 async function tryRefreshToken(): Promise<boolean> {
-  const refreshToken = localStorage.getItem('refreshToken');
-  if (!refreshToken) return false;
-
   try {
     const response = await fetch(`${API_BASE}/auth/refresh`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
+      credentials: 'include',
     });
-
-    if (!response.ok) return false;
-
-    const data = await response.json();
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    return true;
+    return response.ok;
   } catch {
     return false;
   }
@@ -67,7 +46,7 @@ async function tryRefreshToken(): Promise<boolean> {
 export const api = {
   async get<T>(path: string): Promise<T> {
     const response = await fetch(`${API_BASE}${path}`, {
-      headers: await getHeaders(),
+      credentials: 'include',
     });
     return handleResponse<T>(response);
   },
@@ -75,7 +54,8 @@ export const api = {
   async post<T>(path: string, body?: unknown): Promise<T> {
     const response = await fetch(`${API_BASE}${path}`, {
       method: 'POST',
-      headers: await getHeaders(),
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: body ? JSON.stringify(body) : undefined,
     });
     return handleResponse<T>(response);
@@ -84,7 +64,8 @@ export const api = {
   async patch<T>(path: string, body: unknown): Promise<T> {
     const response = await fetch(`${API_BASE}${path}`, {
       method: 'PATCH',
-      headers: await getHeaders(),
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(body),
     });
     return handleResponse<T>(response);
@@ -93,7 +74,7 @@ export const api = {
   async delete(path: string): Promise<void> {
     const response = await fetch(`${API_BASE}${path}`, {
       method: 'DELETE',
-      headers: await getHeaders(),
+      credentials: 'include',
     });
     await handleResponse<void>(response);
   },

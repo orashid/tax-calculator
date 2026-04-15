@@ -1,6 +1,10 @@
 import { create } from 'zustand';
-import type { User, LoginRequest, LoginResponse } from '@meetingrunner/shared';
+import type { User, LoginRequest } from '@meetingrunner/shared';
 import { api } from '../api/client.js';
+
+interface LoginResponseBody {
+  user: User;
+}
 
 interface AuthState {
   user: User | null;
@@ -13,15 +17,13 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  isAuthenticated: !!localStorage.getItem('accessToken'),
-  isLoading: false,
+  isAuthenticated: false,
+  isLoading: true,
 
   login: async (credentials) => {
     set({ isLoading: true });
     try {
-      const data = await api.post<LoginResponse>('/auth/login', credentials);
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
+      const data = await api.post<LoginResponseBody>('/auth/login', credentials);
       set({ user: data.user, isAuthenticated: true, isLoading: false });
     } catch (error) {
       set({ isLoading: false });
@@ -35,13 +37,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch {
       // Ignore errors on logout
     }
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     set({ user: null, isAuthenticated: false });
   },
 
   loadUser: async () => {
-    if (!localStorage.getItem('accessToken')) return;
     set({ isLoading: true });
     try {
       const user = await api.get<User>('/users/me');

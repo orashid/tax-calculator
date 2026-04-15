@@ -8,8 +8,6 @@ import {
   updateCardSchema,
   moveCardSchema,
   createCommentSchema,
-  presignSchema,
-  confirmAttachmentSchema,
   reorderSchema,
   addAssigneeSchema,
   addMemberSchema,
@@ -304,56 +302,3 @@ describe('updateCommentSchema', () => {
   });
 });
 
-describe('presignSchema', () => {
-  it('accepts valid presign request', () => {
-    const result = presignSchema.safeParse({ filename: 'report.pdf', mimeType: 'application/pdf' });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects empty filename', () => {
-    const result = presignSchema.safeParse({ filename: '', mimeType: 'application/pdf' });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe('confirmAttachmentSchema', () => {
-  it('accepts valid confirmation', () => {
-    const result = confirmAttachmentSchema.safeParse({
-      fileKey: 'attachments/card-id/uuid-file.pdf',
-      filename: 'report.pdf',
-      fileSize: 1024,
-      mimeType: 'application/pdf',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects file over 25MB', () => {
-    const result = confirmAttachmentSchema.safeParse({
-      fileKey: 'key',
-      filename: 'big.zip',
-      fileSize: 26 * 1024 * 1024,
-      mimeType: 'application/zip',
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects zero file size', () => {
-    const result = confirmAttachmentSchema.safeParse({
-      fileKey: 'key',
-      filename: 'empty.txt',
-      fileSize: 0,
-      mimeType: 'text/plain',
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects negative file size', () => {
-    const result = confirmAttachmentSchema.safeParse({
-      fileKey: 'key',
-      filename: 'file.txt',
-      fileSize: -100,
-      mimeType: 'text/plain',
-    });
-    expect(result.success).toBe(false);
-  });
-});

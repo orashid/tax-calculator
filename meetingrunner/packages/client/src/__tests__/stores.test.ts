@@ -35,7 +35,6 @@ const makeCard = (id: string, listId: string, position: number): CardSummary => 
   updatedAt: new Date().toISOString(),
   assignees: [],
   commentCount: 0,
-  attachmentCount: 0,
 });
 
 const makeList = (id: string, boardId: string, position: number, cards: CardSummary[] = []): ListWithCards => ({

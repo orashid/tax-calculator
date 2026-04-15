@@ -23,12 +23,14 @@ if (!JWT_SECRET) {
 }
 
 export function authMiddleware(req: Request, _res: Response, next: NextFunction): void {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
+  // Read token from HttpOnly cookie (preferred) or Authorization header (WebSocket/fallback)
+  const token = req.cookies?.accessToken
+    || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
+
+  if (!token) {
     return next(new AppError(401, 'Authentication required'));
   }
 
-  const token = authHeader.slice(7);
   try {
     const payload = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }) as AuthPayload;
     req.user = payload;

@@ -4,6 +4,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -14,7 +15,6 @@ import { boardRoutes } from './routes/boards.js';
 import { listRoutes } from './routes/lists.js';
 import { cardRoutes } from './routes/cards.js';
 import { commentRoutes } from './routes/comments.js';
-import { attachmentRoutes } from './routes/attachments.js';
 import { notificationRoutes } from './routes/notifications.js';
 import { importRoutes } from './routes/import.js';
 import { setupWebSocket } from './websocket/index.js';
@@ -31,12 +31,28 @@ const io = new SocketIOServer(httpServer, {
   cors: {
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
 // Middleware
-app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+const clientOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", clientOrigin, clientOrigin.replace('http', 'ws')],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+    },
+  },
+}));
+app.use(cors({ origin: clientOrigin, credentials: true }));
+app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('short'));
 
@@ -47,7 +63,6 @@ app.use('/api/v1/boards', boardRoutes);
 app.use('/api/v1', listRoutes);
 app.use('/api/v1', cardRoutes);
 app.use('/api/v1', commentRoutes);
-app.use('/api/v1', attachmentRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/import', importRoutes);
 

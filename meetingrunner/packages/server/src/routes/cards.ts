@@ -20,7 +20,7 @@ async function getCardSummary(cardId: string) {
       assignees: {
         include: { user: { select: { id: true, email: true, displayName: true, avatarUrl: true, role: true, createdAt: true, updatedAt: true } } },
       },
-      _count: { select: { comments: true, attachments: true } },
+      _count: { select: { comments: true } },
     },
   });
   if (!card) return null;
@@ -28,7 +28,6 @@ async function getCardSummary(cardId: string) {
     ...card,
     assignees: card.assignees.map((a) => a.user),
     commentCount: card._count.comments,
-    attachmentCount: card._count.attachments,
     _count: undefined,
   };
 }
@@ -91,7 +90,6 @@ cardRoutes.get('/cards/:id', asyncHandler(async (req: Request, res: Response) =>
         include: { author: { select: { id: true, email: true, displayName: true, avatarUrl: true, role: true, createdAt: true, updatedAt: true } } },
         orderBy: { createdAt: 'asc' },
       },
-      attachments: { orderBy: { createdAt: 'desc' } },
     },
   });
 

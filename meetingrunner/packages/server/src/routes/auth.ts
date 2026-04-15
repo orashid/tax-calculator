@@ -12,6 +12,15 @@ import jwt from 'jsonwebtoken';
 
 export const authRoutes = Router();
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: 'strict' as const,
+  path: '/',
+};
+
 // Rate limit login: 5 attempts per 15 minutes per IP
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -60,9 +69,11 @@ authRoutes.post('/login', loginLimiter, validate(loginSchema), asyncHandler(asyn
     },
   });
 
+  // Set tokens as HttpOnly cookies
+  res.cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: 15 * 60 * 1000 });
+  res.cookie('refreshToken', refreshToken, { ...COOKIE_OPTIONS, maxAge: 7 * 24 * 60 * 60 * 1000, path: '/api/v1/auth' });
+
   res.json({
-    accessToken,
-    refreshToken,
     user: {
       id: user.id,
       email: user.email,
@@ -77,8 +88,11 @@ authRoutes.post('/login', loginLimiter, validate(loginSchema), asyncHandler(asyn
   });
 }));
 
-authRoutes.post('/refresh', refreshLimiter, validate(refreshTokenSchema), asyncHandler(async (req: Request, res: Response) => {
-  const { refreshToken } = req.body;
+authRoutes.post('/refresh', refreshLimiter, asyncHandler(async (req: Request, res: Response) => {
+  const refreshToken = req.cookies?.refreshToken;
+  if (!refreshToken) {
+    throw new AppError(401, 'No refresh token provided');
+  }
 
   const stored = await prisma.refreshToken.findUnique({ where: { token: refreshToken } });
   if (!stored || stored.expiresAt < new Date()) {
@@ -115,11 +129,19 @@ authRoutes.post('/refresh', refreshLimiter, validate(refreshTokenSchema), asyncH
     },
   });
 
-  res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+  res.cookie('accessToken', newAccessToken, { ...COOKIE_OPTIONS, maxAge: 15 * 60 * 1000 });
+  res.cookie('refreshToken', newRefreshToken, { ...COOKIE_OPTIONS, maxAge: 7 * 24 * 60 * 60 * 1000, path: '/api/v1/auth' });
+
+  res.json({ success: true });
 }));
 
 authRoutes.post('/logout', authMiddleware, asyncHandler(async (req: Request, res: Response) => {
   // Delete all refresh tokens for this user
   await prisma.refreshToken.deleteMany({ where: { userId: req.user!.userId } });
+
+  // Clear cookies
+  res.clearCookie('accessToken', { ...COOKIE_OPTIONS });
+  res.clearCookie('refreshToken', { ...COOKIE_OPTIONS, path: '/api/v1/auth' });
+
   res.json({ message: 'Logged out' });
 }));

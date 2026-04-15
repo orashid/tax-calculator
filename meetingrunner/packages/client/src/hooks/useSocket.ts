@@ -9,9 +9,8 @@ let globalSocket: Socket | null = null;
 export function initSocket(): Socket {
   if (globalSocket?.connected) return globalSocket;
 
-  const token = localStorage.getItem('accessToken');
   globalSocket = io({
-    auth: { token },
+    withCredentials: true,
     transports: ['websocket', 'polling'],
   });
 
@@ -29,8 +28,7 @@ export function useSocket(boardId: string | undefined): void {
   const { addNotification } = useNotificationStore();
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (!token || !boardId) return;
+    if (!boardId) return;
 
     const socket = initSocket();
     socketRef.current = socket;

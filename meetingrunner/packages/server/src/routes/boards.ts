@@ -68,7 +68,7 @@ boardRoutes.get('/:id', asyncHandler(async (req: Request, res: Response) => {
               assignees: {
                 include: { user: { select: { id: true, email: true, displayName: true, avatarUrl: true, role: true, createdAt: true, updatedAt: true } } },
               },
-              _count: { select: { comments: true, attachments: true } },
+              _count: { select: { comments: true } },
             },
           },
         },
@@ -90,7 +90,6 @@ boardRoutes.get('/:id', asyncHandler(async (req: Request, res: Response) => {
         ...card,
         assignees: card.assignees.map((a) => a.user),
         commentCount: card._count.comments,
-        attachmentCount: card._count.attachments,
         _count: undefined,
       })),
     })),

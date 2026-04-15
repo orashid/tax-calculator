@@ -86,19 +86,6 @@ export const updateCommentSchema = z.object({
   body: z.string().min(1).max(10000),
 });
 
-// Attachments
-export const presignSchema = z.object({
-  filename: z.string().min(1).max(500),
-  mimeType: z.string().min(1).max(200),
-});
-
-export const confirmAttachmentSchema = z.object({
-  fileKey: z.string().min(1).max(1000),
-  filename: z.string().min(1).max(500),
-  fileSize: z.number().int().positive().max(25 * 1024 * 1024), // 25MB max
-  mimeType: z.string().min(1).max(200),
-});
-
 // Board Members
 export const addMemberSchema = z.object({
   userId: z.string().uuid(),

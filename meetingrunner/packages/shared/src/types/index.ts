@@ -59,13 +59,11 @@ export interface Card {
 export interface CardSummary extends Card {
   assignees: User[];
   commentCount: number;
-  attachmentCount: number;
 }
 
 export interface CardDetail extends Card {
   assignees: User[];
   comments: Comment[];
-  attachments: Attachment[];
 }
 
 export interface Comment {
@@ -78,17 +76,6 @@ export interface Comment {
   updatedAt: string;
   author: User;
   replies?: Comment[];
-}
-
-export interface Attachment {
-  id: string;
-  cardId: string;
-  uploadedBy: string;
-  filename: string;
-  fileKey: string;
-  fileSize: number;
-  mimeType: string | null;
-  createdAt: string;
 }
 
 export interface Notification {
@@ -114,8 +101,6 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
   user: User;
 }
 
@@ -152,23 +137,6 @@ export interface InviteUserRequest {
   email: string;
   displayName: string;
   role?: UserRole;
-}
-
-export interface PresignRequest {
-  filename: string;
-  mimeType: string;
-}
-
-export interface PresignResponse {
-  uploadUrl: string;
-  fileKey: string;
-}
-
-export interface ConfirmAttachmentRequest {
-  fileKey: string;
-  filename: string;
-  fileSize: number;
-  mimeType: string;
 }
 
 // Socket event types
