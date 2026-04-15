@@ -17,7 +17,10 @@ declare global {
   }
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+export const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'test' ? 'test-secret' : '');
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
 
 export function authMiddleware(req: Request, _res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
@@ -27,7 +30,7 @@ export function authMiddleware(req: Request, _res: Response, next: NextFunction)
 
   const token = authHeader.slice(7);
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as AuthPayload;
+    const payload = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }) as AuthPayload;
     req.user = payload;
     next();
   } catch {
@@ -43,9 +46,9 @@ export function adminOnly(req: Request, _res: Response, next: NextFunction): voi
 }
 
 export function generateAccessToken(payload: AuthPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+  return jwt.sign(payload, JWT_SECRET, { algorithm: 'HS256', expiresIn: '15m' });
 }
 
 export function generateRefreshToken(payload: AuthPayload): string {
-  return jwt.sign({ ...payload, jti: crypto.randomUUID() }, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ ...payload, jti: crypto.randomUUID() }, JWT_SECRET, { algorithm: 'HS256', expiresIn: '7d' });
 }

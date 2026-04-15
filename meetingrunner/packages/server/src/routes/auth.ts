@@ -1,19 +1,36 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import rateLimit from 'express-rate-limit';
 import { loginSchema, refreshTokenSchema } from '@meetingrunner/shared';
 import { prisma } from '../db.js';
 import { validate } from '../middleware/validate.js';
-import { generateAccessToken, generateRefreshToken, authMiddleware, AuthPayload } from '../middleware/auth.js';
+import { generateAccessToken, generateRefreshToken, authMiddleware, AuthPayload, JWT_SECRET } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
-
 export const authRoutes = Router();
 
-authRoutes.post('/login', validate(loginSchema), asyncHandler(async (req: Request, res: Response) => {
+// Rate limit login: 5 attempts per 15 minutes per IP
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many login attempts. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limit token refresh: 10 attempts per 15 minutes per IP
+const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many refresh attempts. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+authRoutes.post('/login', loginLimiter, validate(loginSchema), asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   const user = await prisma.user.findUnique({ where: { email } });
@@ -60,7 +77,7 @@ authRoutes.post('/login', validate(loginSchema), asyncHandler(async (req: Reques
   });
 }));
 
-authRoutes.post('/refresh', validate(refreshTokenSchema), asyncHandler(async (req: Request, res: Response) => {
+authRoutes.post('/refresh', refreshLimiter, validate(refreshTokenSchema), asyncHandler(async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
 
   const stored = await prisma.refreshToken.findUnique({ where: { token: refreshToken } });
@@ -73,7 +90,7 @@ authRoutes.post('/refresh', validate(refreshTokenSchema), asyncHandler(async (re
 
   let payload: AuthPayload;
   try {
-    const decoded = jwt.verify(refreshToken, JWT_SECRET) as AuthPayload;
+    const decoded = jwt.verify(refreshToken, JWT_SECRET, { algorithms: ['HS256'] }) as AuthPayload;
     payload = { userId: decoded.userId, email: decoded.email, role: decoded.role };
   } catch {
     throw new AppError(401, 'Invalid refresh token');

@@ -37,7 +37,7 @@ const io = new SocketIOServer(httpServer, {
 // Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '1mb' }));
 app.use(morgan('short'));
 
 // API routes

@@ -219,11 +219,19 @@ cardRoutes.post('/cards/:id/move', validate(moveCardSchema), asyncHandler(async 
 cardRoutes.patch('/cards/reorder', validate(reorderSchema), asyncHandler(async (req: Request, res: Response) => {
   const { orderedIds } = req.body;
 
-  const firstCard = await prisma.card.findUnique({ where: { id: orderedIds[0] }, include: { list: true } });
-  if (!firstCard) throw new AppError(404, 'Card not found');
+  // Verify ALL cards exist and belong to the same board
+  const cards = await prisma.card.findMany({
+    where: { id: { in: orderedIds } },
+    include: { list: true },
+  });
+  if (cards.length !== orderedIds.length) throw new AppError(404, 'One or more cards not found');
 
+  const boardIds = new Set(cards.map((c) => c.list.boardId));
+  if (boardIds.size !== 1) throw new AppError(400, 'All cards must belong to the same board');
+
+  const boardId = [...boardIds][0];
   const membership = await prisma.boardMember.findUnique({
-    where: { boardId_userId: { boardId: firstCard.list.boardId, userId: req.user!.userId } },
+    where: { boardId_userId: { boardId, userId: req.user!.userId } },
   });
   if (!membership) throw new AppError(403, 'Not a member of this board');
 

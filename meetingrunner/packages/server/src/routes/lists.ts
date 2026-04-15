@@ -49,9 +49,12 @@ listRoutes.patch('/lists/:id', validate(updateListSchema), asyncHandler(async (r
   });
   if (!membership) throw new AppError(403, 'Not a member of this board');
 
+  const data = updateListSchema.parse(req.body);
   const updated = await prisma.list.update({
     where: { id },
-    data: req.body,
+    data: {
+      ...(data.title !== undefined && { title: data.title }),
+    },
   });
 
   getSocketService()?.emitToBoard(list.boardId, 'list:updated', { list: updated });
@@ -80,12 +83,18 @@ listRoutes.delete('/lists/:id', asyncHandler(async (req: Request, res: Response)
 listRoutes.patch('/lists/reorder', validate(reorderSchema), asyncHandler(async (req: Request, res: Response) => {
   const { orderedIds } = req.body;
 
-  // Get the board from the first list
-  const firstList = await prisma.list.findUnique({ where: { id: orderedIds[0] } });
-  if (!firstList) throw new AppError(404, 'List not found');
+  // Verify ALL lists exist and belong to the same board
+  const lists = await prisma.list.findMany({
+    where: { id: { in: orderedIds } },
+  });
+  if (lists.length !== orderedIds.length) throw new AppError(404, 'One or more lists not found');
 
+  const boardIds = new Set(lists.map((l) => l.boardId));
+  if (boardIds.size !== 1) throw new AppError(400, 'All lists must belong to the same board');
+
+  const boardId = [...boardIds][0];
   const membership = await prisma.boardMember.findUnique({
-    where: { boardId_userId: { boardId: firstList.boardId, userId: req.user!.userId } },
+    where: { boardId_userId: { boardId, userId: req.user!.userId } },
   });
   if (!membership) throw new AppError(403, 'Not a member of this board');
 
@@ -96,8 +105,8 @@ listRoutes.patch('/lists/reorder', validate(reorderSchema), asyncHandler(async (
     ),
   );
 
-  getSocketService()?.emitToBoard(firstList.boardId, 'list:reordered', {
-    boardId: firstList.boardId,
+  getSocketService()?.emitToBoard(boardId, 'list:reordered', {
+    boardId,
     orderedIds,
   });
 

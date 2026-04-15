@@ -1,9 +1,8 @@
 import { Server as SocketIOServer } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { initSocketService } from './socketService.js';
-import { AuthPayload } from '../middleware/auth.js';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+import { AuthPayload, JWT_SECRET } from '../middleware/auth.js';
+import { prisma } from '../db.js';
 
 export function setupWebSocket(io: SocketIOServer): void {
   initSocketService(io);
@@ -16,7 +15,7 @@ export function setupWebSocket(io: SocketIOServer): void {
     }
 
     try {
-      const payload = jwt.verify(token, JWT_SECRET) as AuthPayload;
+      const payload = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }) as AuthPayload;
       socket.data.user = payload;
       next();
     } catch {
@@ -30,9 +29,20 @@ export function setupWebSocket(io: SocketIOServer): void {
     // Join personal notification room
     socket.join(`user:${user.userId}`);
 
-    // Join/leave board rooms
-    socket.on('board:join', (boardId: string) => {
-      socket.join(`board:${boardId}`);
+    // Join/leave board rooms — verify membership before joining
+    socket.on('board:join', async (boardId: string) => {
+      try {
+        const membership = await prisma.boardMember.findUnique({
+          where: { boardId_userId: { boardId, userId: user.userId } },
+        });
+        if (!membership) {
+          socket.emit('error', { message: 'Not a member of this board' });
+          return;
+        }
+        socket.join(`board:${boardId}`);
+      } catch {
+        socket.emit('error', { message: 'Failed to join board room' });
+      }
     });
 
     socket.on('board:leave', (boardId: string) => {

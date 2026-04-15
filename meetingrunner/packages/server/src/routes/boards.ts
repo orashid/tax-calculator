@@ -111,9 +111,13 @@ boardRoutes.patch('/:id', validate(updateBoardSchema), asyncHandler(async (req: 
     throw new AppError(403, 'Not authorized to update this board');
   }
 
+  const data = updateBoardSchema.parse(req.body);
   const updated = await prisma.board.update({
     where: { id },
-    data: req.body,
+    data: {
+      ...(data.title !== undefined && { title: data.title }),
+      ...(data.description !== undefined && { description: data.description }),
+    },
   });
 
   res.json(updated);
@@ -142,11 +146,8 @@ boardRoutes.post('/:id/members', validate(addMemberSchema), asyncHandler(async (
   const board = await prisma.board.findUnique({ where: { id } });
   if (!board) throw new AppError(404, 'Board not found');
 
-  // Any board member can add users; admins can always add
-  const isMember = await prisma.boardMember.findUnique({
-    where: { boardId_userId: { boardId: id, userId: req.user!.userId } },
-  });
-  if (!isMember && req.user!.role !== 'admin') {
+  // Only board creator or system admin can add members
+  if (board.createdBy !== req.user!.userId && req.user!.role !== 'admin') {
     throw new AppError(403, 'Not authorized to manage board members');
   }
 

@@ -98,6 +98,15 @@ commentRoutes.patch('/comments/:id', validate(updateCommentSchema), asyncHandler
     throw new AppError(403, 'Not authorized to edit this comment');
   }
 
+  // Verify board membership (prevents editing after removal from board)
+  const card = await prisma.card.findUnique({ where: { id: comment.cardId }, include: { list: true } });
+  if (!card) throw new AppError(404, 'Card not found');
+
+  const membership = await prisma.boardMember.findUnique({
+    where: { boardId_userId: { boardId: card.list.boardId, userId: req.user!.userId } },
+  });
+  if (!membership) throw new AppError(403, 'Not a member of this board');
+
   const updated = await prisma.comment.update({
     where: { id },
     data: { body: req.body.body },
@@ -106,10 +115,7 @@ commentRoutes.patch('/comments/:id', validate(updateCommentSchema), asyncHandler
     },
   });
 
-  const card = await prisma.card.findUnique({ where: { id: comment.cardId }, include: { list: true } });
-  if (card) {
-    getSocketService()?.emitToBoard(card.list.boardId, 'comment:updated', { comment: updated });
-  }
+  getSocketService()?.emitToBoard(card.list.boardId, 'comment:updated', { comment: updated });
 
   res.json(updated);
 }));
@@ -125,12 +131,18 @@ commentRoutes.delete('/comments/:id', asyncHandler(async (req: Request, res: Res
     throw new AppError(403, 'Not authorized to delete this comment');
   }
 
+  // Verify board membership (prevents deleting after removal from board)
+  const card = await prisma.card.findUnique({ where: { id: comment.cardId }, include: { list: true } });
+  if (!card) throw new AppError(404, 'Card not found');
+
+  const membership = await prisma.boardMember.findUnique({
+    where: { boardId_userId: { boardId: card.list.boardId, userId: req.user!.userId } },
+  });
+  if (!membership && req.user!.role !== 'admin') throw new AppError(403, 'Not a member of this board');
+
   await prisma.comment.delete({ where: { id } });
 
-  const card = await prisma.card.findUnique({ where: { id: comment.cardId }, include: { list: true } });
-  if (card) {
-    getSocketService()?.emitToBoard(card.list.boardId, 'comment:deleted', { commentId: id, cardId: comment.cardId });
-  }
+  getSocketService()?.emitToBoard(card.list.boardId, 'comment:deleted', { commentId: id, cardId: comment.cardId });
 
   res.status(204).send();
 }));
