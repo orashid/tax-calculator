@@ -32,7 +32,7 @@ export default function BoardMembersModal({
   }, []);
 
   const memberIds = new Set(currentMembers.map((m) => m.id));
-  const nonMembers = allUsers.filter((u) => !memberIds.has(u.id) && u.isActive);
+  const nonMembers = allUsers.filter((u) => !memberIds.has(u.id) && u.isActive && u.role !== 'admin');
 
   const handleAdd = async (userId: string) => {
     setError('');
