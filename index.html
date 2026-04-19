@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Calculator</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Income Tax Calculator</h1>
+            <p class="subtitle">Calculate your federal and state income taxes</p>
+        </header>
+
+        <div class="calculator-card">
+            <form id="taxForm">
+                <div class="form-group">
+                    <label for="income">Total Annual Income</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">$</span>
+                        <input
+                            type="number"
+                            id="income"
+                            name="income"
+                            placeholder="75000"
+                            min="0"
+                            step="1"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="filingStatus">Filing Status</label>
+                    <select id="filingStatus" name="filingStatus" required>
+                        <option value="single">Single</option>
+                        <option value="marriedJoint">Married Filing Jointly</option>
+                        <option value="marriedSeparate">Married Filing Separately</option>
+                        <option value="headOfHousehold">Head of Household</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="state">State</label>
+                    <select id="state" name="state" required>
+                        <option value="">Select your state</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="calculate-btn">Calculate Taxes</button>
+            </form>
+        </div>
+
+        <div id="results" class="results-section" style="display: none;">
+            <div class="results-grid">
+                <div class="result-card total-card">
+                    <h3>Total Tax Owed</h3>
+                    <div class="big-number" id="totalTax">$0</div>
+                    <div class="effective-rate">
+                        Effective Rate: <span id="effectiveRate">0%</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>Federal Tax</h3>
+                    <div class="number" id="federalTax">$0</div>
+                    <div class="rate">Rate: <span id="federalRate">0%</span></div>
+                </div>
+
+                <div class="result-card">
+                    <h3>State Tax</h3>
+                    <div class="number" id="stateTax">$0</div>
+                    <div class="rate">Rate: <span id="stateRate">0%</span></div>
+                </div>
+
+                <div class="result-card">
+                    <h3>After-Tax Income</h3>
+                    <div class="number" id="afterTaxIncome">$0</div>
+                </div>
+            </div>
+
+            <div class="breakdown-section">
+                <h3>Federal Tax Breakdown</h3>
+                <div id="federalBreakdown" class="breakdown-list"></div>
+            </div>
+
+            <div class="breakdown-section" id="stateBreakdownSection" style="display: none;">
+                <h3>State Tax Breakdown</h3>
+                <div id="stateBreakdown" class="breakdown-list"></div>
+            </div>
+
+            <div class="chart-section">
+                <h3>Income Distribution</h3>
+                <canvas id="taxChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Tax Year: <span id="taxYear">2024</span> | For estimation purposes only</p>
+    </footer>
+
+    <script src="js/calculator.js"></script>
+    <script src="js/ui.js"></script>
+</body>
+</html>
